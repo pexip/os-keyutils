@@ -1,10 +1,12 @@
 Source: keyutils
 Section: admin
 Priority: optional
-Maintainer: Daniel Baumann <daniel.baumann@progress-technologies.net>
+Maintainer: Pexip AS <packaging@pexip.com>
+XSBC-Pexip-Original-Maintainer: Daniel Baumann <daniel.baumann@progress-technologies.net>
 Build-Depends: debhelper (>= 8.9)
 Standards-Version: 3.9.2
 Homepage: http://people.redhat.com/~dhowells/keyutils/
+XS-Pexip-Upstream: http://archive.ubuntu.com/ubuntu/ precise
 
 Package: keyutils
 Section: admin
