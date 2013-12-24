@@ -1,0 +1,9 @@
+*~
+*.o
+*.os
+*.so
+*.a
+*.so.*
+keyctl
+request-key
+key.dns_resolver
