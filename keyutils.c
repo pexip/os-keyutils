@@ -21,6 +21,9 @@
 #include <asm/unistd.h>
 #include "keyutils.h"
 
+const char keyutils_version_string[] = PKGVERSION;
+const char keyutils_build_string[] = PKGBUILD;
+
 #ifdef NO_GLIBC_KEYERR
 static int error_inited;
 static void (*libc_perror)(const char *msg);
@@ -221,6 +224,16 @@ long keyctl_instantiate_iov(key_serial_t id,
 	return ret;
 }
 
+long keyctl_invalidate(key_serial_t id)
+{
+	return keyctl(KEYCTL_INVALIDATE, id);
+}
+
+long keyctl_get_persistent(uid_t uid, key_serial_t id)
+{
+	return keyctl(KEYCTL_GET_PERSISTENT, uid, id);
+}
+
 /*****************************************************************************/
 /*
  * fetch key description into an allocated buffer
@@ -236,29 +249,26 @@ int keyctl_describe_alloc(key_serial_t id, char **_buffer)
 	if (ret < 0)
 		return -1;
 
-	buflen = ret;
-	buf = malloc(buflen);
-	if (!buf)
-		return -1;
-
 	for (;;) {
-		ret = keyctl_describe(id, buf, buflen);
-		if (ret < 0)
+		buflen = ret;
+		buf = malloc(buflen);
+		if (!buf)
 			return -1;
+
+		ret = keyctl_describe(id, buf, buflen);
+		if (ret < 0) {
+			free(buf);
+			return -1;
+		}
 
 		if (buflen >= ret)
 			break;
-
-		buflen = ret;
-		buf = realloc(buf, buflen);
-		if (!buf)
-			return -1;
+		free(buf);
 	}
 
 	*_buffer = buf;
-	return buflen - 1;
-
-} /* end keyctl_describe_alloc() */
+	return ret - 1;
+}
 
 /*****************************************************************************/
 /*
@@ -268,37 +278,34 @@ int keyctl_describe_alloc(key_serial_t id, char **_buffer)
  */
 int keyctl_read_alloc(key_serial_t id, void **_buffer)
 {
-	void *buf;
+	char *buf;
 	long buflen, ret;
 
 	ret = keyctl_read(id, NULL, 0);
 	if (ret < 0)
 		return -1;
 
-	buflen = ret;
-	buf = malloc(buflen + 1);
-	if (!buf)
-		return -1;
-
 	for (;;) {
-		ret = keyctl_read(id, buf, buflen);
-		if (ret < 0)
+		buflen = ret;
+		buf = malloc(buflen + 1);
+		if (!buf)
 			return -1;
+
+		ret = keyctl_read(id, buf, buflen);
+		if (ret < 0) {
+			free(buf);
+			return -1;
+		}
 
 		if (buflen >= ret)
 			break;
-
-		buflen = ret;
-		buf = realloc(buf, buflen + 1);
-		if (!buf)
-			return -1;
+		free(buf);
 	}
 
-	((unsigned char *) buf)[buflen] = 0;
+	buf[ret] = 0;
 	*_buffer = buf;
-	return buflen;
-
-} /* end keyctl_read_alloc() */
+	return ret;
+}
 
 /*****************************************************************************/
 /*
@@ -315,27 +322,25 @@ int keyctl_get_security_alloc(key_serial_t id, char **_buffer)
 	if (ret < 0)
 		return -1;
 
-	buflen = ret;
-	buf = malloc(buflen);
-	if (!buf)
-		return -1;
-
 	for (;;) {
-		ret = keyctl_get_security(id, buf, buflen);
-		if (ret < 0)
+		buflen = ret;
+		buf = malloc(buflen);
+		if (!buf)
 			return -1;
+
+		ret = keyctl_get_security(id, buf, buflen);
+		if (ret < 0) {
+			free(buf);
+			return -1;
+		}
 
 		if (buflen >= ret)
 			break;
-
-		buflen = ret;
-		buf = realloc(buf, buflen);
-		if (!buf)
-			return -1;
+		free(buf);
 	}
 
 	*_buffer = buf;
-	return buflen - 1;
+	return ret - 1;
 }
 
 /*
@@ -419,6 +424,90 @@ int recursive_session_key_scan(recursive_key_scanner_t func, void *data)
 	if (session > 0)
 		return recursive_key_scan(session, func, data);
 	return 0;
+}
+
+/*
+ * Find a key by type and description
+ */
+key_serial_t find_key_by_type_and_desc(const char *type, const char *desc,
+				       key_serial_t destringid)
+{
+	key_serial_t id, error;
+	FILE *f;
+	char buf[1024], typebuf[40], rdesc[1024], *kdesc, *cp;
+	int n, ndesc, dlen;
+
+	error = ENOKEY;
+
+	id = request_key(type, desc, NULL, destringid);
+	if (id >= 0 || errno == ENOMEM)
+		return id;
+	if (errno != ENOKEY)
+		error = errno;
+
+	dlen = strlen(desc);
+
+	f = fopen("/proc/keys", "r");
+	if (!f) {
+		fprintf(stderr, "libkeyutils: Can't open /proc/keys: %m\n");
+		return -1;
+	}
+
+	while (fgets(buf, sizeof(buf), f)) {
+		cp = strchr(buf, '\n');
+		if (*cp)
+			*cp = '\0';
+
+		ndesc = 0;
+		n = sscanf(buf, "%x %*s %*u %*s %*x %*d %*d %s %n",
+			   &id, typebuf, &ndesc);
+		if (n == 2 && ndesc > 0 && ndesc <= cp - buf) {
+			if (strcmp(typebuf, type) != 0)
+				continue;
+			kdesc = buf + ndesc;
+			if (memcmp(kdesc, desc, dlen) != 0)
+				continue;
+			if (kdesc[dlen] != ':' &&
+			    kdesc[dlen] != '\0' &&
+			    kdesc[dlen] != ' ')
+				continue;
+			kdesc[dlen] = '\0';
+
+			/* The key type appends extra stuff to the end of the
+			 * description after a colon in /proc/keys.  Colons,
+			 * however, are allowed in descriptions, so we need to
+			 * make a further check. */
+			n = keyctl_describe(id, rdesc, sizeof(rdesc) - 1);
+			if (n == -1) {
+				if (errno != ENOKEY)
+					error = errno;
+				if (errno == ENOMEM)
+					break;
+			}
+			if (n >= sizeof(rdesc) - 1)
+				continue;
+			rdesc[n] = '\0';
+
+			cp = strrchr(rdesc, ';');
+			if (!cp)
+				continue;
+			cp++;
+			if (strcmp(cp, desc) != 0)
+				continue;
+
+			fclose(f);
+
+			if (destringid &&
+			    keyctl_link(id, destringid) == -1)
+				return -1;
+
+			return id;
+		}
+	}
+
+	fclose(f);
+	errno = error;
+	return -1;
 }
 
 #ifdef NO_GLIBC_KEYERR

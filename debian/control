@@ -1,13 +1,15 @@
 Source: keyutils
 Section: admin
 Priority: optional
-Maintainer: Daniel Baumann <daniel.baumann@progress-technologies.net>
-Build-Depends: debhelper (>= 8.9)
-Standards-Version: 3.9.2
+Maintainer: Christian Kastner <debian@kvr.at>
+Build-Depends: debhelper (>= 9), lsb-release
+Standards-Version: 3.9.5
+XS-Testsuite: autopkgtest
 Homepage: http://people.redhat.com/~dhowells/keyutils/
+Vcs-Git: git://anonscm.debian.org/collab-maint/keyutils.git
+Vcs-Browser: http://anonscm.debian.org/gitweb/?p=collab-maint/keyutils.git
 
 Package: keyutils
-Section: admin
 Architecture: linux-any
 Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: Linux Key Management Utilities
