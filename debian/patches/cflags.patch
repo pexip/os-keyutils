@@ -5,11 +5,14 @@ Subject: Avoid setting Intel Architecture specific CFLAGS
 Bug-Debian: http://bugs.debian.org/638925
 Forwarded: not-needed
 Last-Update: 2014-05-18
+---
+ Makefile | 2 --
+ 1 file changed, 2 deletions(-)
 
-Index: keyutils-1.5.9/Makefile
-===================================================================
---- keyutils-1.5.9.orig/Makefile
-+++ keyutils-1.5.9/Makefile
+diff --git a/Makefile b/Makefile
+index c904eaf..304c694 100644
+--- a/Makefile
++++ b/Makefile
 @@ -66,12 +66,10 @@ LNS		:= ln -sf
  
  ifeq ($(origin CFLAGS),undefined)

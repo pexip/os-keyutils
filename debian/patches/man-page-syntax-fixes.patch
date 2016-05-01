@@ -2,9 +2,8 @@ From: Christian Kastner <debian@kvr.at>
 Date: Sun, 18 May 2014 16:44:32 +0200
 Subject: man page syntax fixes
 
-Forwarded: yes
-Last-Update: 2014-05-18
-
+Applied-Upstream: https://git.kernel.org/cgit/linux/kernel/git/dhowells/keyutils.git/commit/?id=b606ad225c7df7ce 377c5ccc651d0b6cbaf2d8ca
+Last-Update: 2015-08-25
 ---
  man/find_key_by_type_and_name.3 |  2 +-
  man/key.dns_resolver.8          |  2 +-

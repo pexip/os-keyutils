@@ -1,0 +1,38 @@
+From: Christian Kastner <ckk@kvr.at>
+Date: Sat, 30 Apr 2016 23:49:52 +0200
+Subject: Drop tests requiring CONFIG_BIG_KEYS
+
+The Debian kernel is not built with CONFIG_BIG_KEYS.
+
+Forwarded: not-needed
+Last-Update: 2016-04-30
+---
+ tests/keyctl/padd/useradd/runtest.sh | 15 ---------------
+ 1 file changed, 15 deletions(-)
+
+diff --git a/tests/keyctl/padd/useradd/runtest.sh b/tests/keyctl/padd/useradd/runtest.sh
+index 4c675f5..d5e4db9 100644
+--- a/tests/keyctl/padd/useradd/runtest.sh
++++ b/tests/keyctl/padd/useradd/runtest.sh
+@@ -56,21 +56,6 @@ then
+ 	expect_keyid keyid
+ 	md5sum_key $keyid
+ 	expect_payload payload "f128f774ede3fe931e7c6745c4292f40"
+-
+-	if ! version_less_than `uname -r` 3.13
+-	then
+-		marker "ADD SMALL BIG KEY"
+-		pcreate_key_by_size 128 big_key small @s
+-		expect_keyid keyid
+-		md5sum_key $keyid
+-		expect_payload payload "f09f35a5637839458e462e6350ecbce4"
+-
+-		marker "ADD HUGE BIG KEY"
+-		pcreate_key_by_size $((1024*1024-1)) big_key huge @s
+-		expect_keyid keyid
+-		md5sum_key $keyid
+-		expect_payload payload "e57598cd670284cf7d09e16ed9d4b2ac"
+-	fi
+ fi
+ 
+ marker "CLEAR KEYRING"

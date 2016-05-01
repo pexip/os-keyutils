@@ -1,12 +1,11 @@
 From: Christian Kastner <debian@kvr.at>
 Date: Mon, 26 May 2014 09:54:57 +0200
-Subject: [PATCH] Remove RHEL-specific feature test
+Subject: Remove RHEL-specific feature test
 
 The release number comparison breaks  with sid's release number of "unstable".
 
 Forwarded: no
 Last-Update: 2015-05-26
-
 ---
  tests/keyctl/session/valid/runtest.sh | 15 ---------------
  1 file changed, 15 deletions(-)
@@ -37,6 +36,3 @@ index 172343a..b8372ca 100644
  # describe the keyring created for a named session
  marker "NAMED SESSION"
  new_session qwerty keyctl rdescribe @s "@"
--- 
-2.0.0.rc4
-

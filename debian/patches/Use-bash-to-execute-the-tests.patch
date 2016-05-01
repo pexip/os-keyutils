@@ -12,10 +12,10 @@ Last-Update: 2014-07-26
  tests/runtest.sh     | 2 +-
  2 files changed, 2 insertions(+), 2 deletions(-)
 
-Index: pkg-keyutils/tests/prepare.inc.sh
-===================================================================
---- pkg-keyutils.orig/tests/prepare.inc.sh
-+++ pkg-keyutils/tests/prepare.inc.sh
+diff --git a/tests/prepare.inc.sh b/tests/prepare.inc.sh
+index c1e2420..03ce2ff 100644
+--- a/tests/prepare.inc.sh
++++ b/tests/prepare.inc.sh
 @@ -4,7 +4,7 @@
  if [ "x`keyctl rdescribe @s | sed 's/.*;//'`" != "xRHTS/keyctl/$$" ]
  then
@@ -25,10 +25,10 @@ Index: pkg-keyutils/tests/prepare.inc.sh
  fi
  
  # Set up for the Red Hat Test System
-Index: pkg-keyutils/tests/runtest.sh
-===================================================================
---- pkg-keyutils.orig/tests/runtest.sh
-+++ pkg-keyutils/tests/runtest.sh
+diff --git a/tests/runtest.sh b/tests/runtest.sh
+index d49c305..85c2270 100644
+--- a/tests/runtest.sh
++++ b/tests/runtest.sh
 @@ -13,7 +13,7 @@ fi
  for i in ${TESTS}; do
  	export TEST=$i

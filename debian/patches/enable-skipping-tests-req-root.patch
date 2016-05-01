@@ -4,9 +4,8 @@ Subject: Enable skipping tests requiring root
 
 We don't have root privileges at build time.
 
-Forwarded: yes
-Last-Update: 2014-07-26
-
+Applied-Upstream: https://git.kernel.org/cgit/linux/kernel/git/dhowells/keyutils.git/commit/?id=9df87012b3a7d8cba62df908784d459e7898b747
+Last-Update: 2015-08-25
 ---
  tests/keyctl/padd/useradd/runtest.sh | 59 ++++++++++++++++++++----------------
  tests/prepare.inc.sh                 |  8 +++++
@@ -106,6 +105,3 @@ index 03ce2ff..6860e30 100644
 +else
 +	skip_root_required=0
 +fi
--- 
-2.0.0.rc4
-

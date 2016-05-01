@@ -1,3 +1,94 @@
+keyutils (1.5.9-9) unstable; urgency=medium
+
+  * Drop package keyutils-dbg in favor of automatic dbgsym packages, as per
+    https://lists.debian.org/debian-devel/2015/12/msg00262.html
+  * d/control:
+    - Bump Standards-Version to 3.9.8 (no changes needed)
+    - Bump Build-Depends version of debhelper to (>= 9.20151004). Needed for
+      $SOURCE_DATE_EPOCH
+    - Switch Vcs-Browser from gitweb to cgit
+    - Switch to secure URIs in Vcs-* fields
+  * d/copyright:
+    - Bump copyright years
+  * d/tests:
+    - Amend missing dependencies for upstream-runtime-tests
+    - Add allow-stderr restriction
+  * d/rules:
+    - Use debhelper's $SOURCE_DATE_EPOCH for embedded timestamp. This should
+      resolve a reproducible-builds issue
+  * d/patches (added):
+    - Drop-tests-requiring-CONFIG_BIG_KEYS.patch
+      The Debian kernel is built without CONFIG_BIG_KEYS
+    - Add Adjust-tests-for-3.18-kernel-change.patch
+      The maximum description size is 4095 plus a NULL in kernels from v3.18.
+      Backported from upstream
+
+ -- Christian Kastner <ckk@debian.org>  Sun, 01 May 2016 13:08:32 +0200
+
+keyutils (1.5.9-8) unstable; urgency=medium
+
+  * d/rules:
+    - Use date from changelog as build date
+  * d/patches (added):
+    - Add patch Include-limits.h-for-UINT_MAX.patch
+      Closes: #798157
+    - Add patch Make-build-reproducible.patch
+      Makes it possible to set build date instead of using the current date
+  * d/patches (updated):
+    - Disable-tests-hitting-bug-in-MIPS-kernel-3.19.patch
+    - Make-testcase-aware-of-a-kernel-behaviour-change.patch
+      Extend DEP3 headers
+
+ -- Christian Kastner <ckk@debian.org>  Wed, 07 Oct 2015 20:42:53 +0200
+
+keyutils (1.5.9-7) unstable; urgency=medium
+
+  * debian/patches (updated):
+    - Disable-tests-hitting-bug-in-MIPS-kernel-3.19.patch
+      Add another affected test that I seem to have overlooked previously.
+
+ -- Christian Kastner <ckk@debian.org>  Thu, 03 Sep 2015 01:55:10 +0200
+
+keyutils (1.5.9-6) unstable; urgency=medium
+
+  * Add package-specific d/gbp.conf
+  * d/patches:
+    - Drop patch numbers from .patch filenames
+  * d/control:
+    - Bump Standards-Version to 3.9.6 (no changes needed)
+    - Mark package keyutils-dbg as Multi-Arch: same
+    - Mark package keyutils-dev as Multi-Arch: same
+    - Mark package keyutils as Multi-Arch: foreign
+    - Drop XS-Testsuite. dpkg now recognizes the Testsuite header, and
+      dpkg-source automatically adds one when an autopkgtest suite is found
+    - Switch Maintainer email to my @debian.org address
+  * d/copyright:
+    - Fix a Files pattern (the GPL-2+ applies to all but two files)
+    - Bump copyright years
+  * d/patches (dropped):
+    - Enable-skipping-of-MAXDESCLEN-tests
+      This was a Debian-specific temporary workaround for a kernel issue on
+      arm64, MIPS, and sparc.
+        + The arm64 issue (#754206) is no longer reproducible on a porter box
+          which also has a 3.16 (albeit a later release), so lets see if these
+          just were early arm64 adoption problems
+        + The patch added below addresses the problem on MIPS more cleanly
+        + sparc has been dropped in the meantime
+  * d/patches (updated):
+     - Enable-skipping-test-requiring-installation.patch
+     - enable-skipping-tests-req-root.patch
+     - man-page-syntax-fixes.patch
+       Added DEP3 Applied-Upstream headers to the above three
+  * d/patches (added):
+    - Disable-tests-hitting-bug-in-MIPS-kernel-3.19.patch
+      This disables the "overlong description length" tests when running on a
+      MIPS kernel earlier than 3.19. They could not pass because of a kernel
+      bug. Closes: #779351
+    - Add patch Make-testcase-aware-of-a-kernel-behaviour-change.patch
+      This was a transient issue with kernels 3.8 - 3.12. Closes: #768905
+
+ -- Christian Kastner <ckk@debian.org>  Tue, 01 Sep 2015 21:17:27 +0200
+
 keyutils (1.5.9-5) unstable; urgency=low
 
   * debian/rules:

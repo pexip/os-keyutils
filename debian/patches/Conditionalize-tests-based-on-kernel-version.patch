@@ -7,7 +7,6 @@ currently running kernel supports the features they require.
 
 Forwarded: not-needed
 Last-Update: 2015-04-29
-
 ---
  tests/keyctl/invalidate/bad-args/runtest.sh |  9 +++++++++
  tests/keyctl/invalidate/noargs/runtest.sh   |  9 +++++++++
@@ -111,6 +110,3 @@ index 94c9609..4c675f5 100644
  fi
  
  marker "CLEAR KEYRING"
--- 
-2.0.0.rc4
-
