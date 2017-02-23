@@ -1,20 +1,27 @@
-Files: keyctl*, request-key*
-Copyright: (C) 2005-2011 Red Hat <http://www.redhat.com/>
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: keyutils
+Upstream-Contact: David Howells <dhowells@redhat.com>
+Source: http://people.redhat.com/~dhowells/keyutils/
+
+Files: keyctl* request-key*
+Copyright: 2005-2014 Red Hat <http://www.redhat.com/>
 License: GPL-2+
 
 Files: keyutils.*
-Copyright: (C) 2005-2011 Red Hat <http://www.redhat.com/>
+Copyright: 2005-2014 Red Hat <http://www.redhat.com/>
 License: LGPL-2+
 
 Files: debian/*
-Copyright: (C) 2006-2011 Daniel Baumann <daniel.baumann@progress-technologies.net>
+Copyright: 2006-2013 Daniel Baumann <mail@daniel-baumann.ch>
+           2013 Luk Claes <luk@debian.org>
+	   2014 Christian Kastner <debian@kvr.at>
 License: LGPL-2+
 
 License: GPL-2+
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 2 of the License, or
+ (at your option) any later version.
  .
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,26 +29,24 @@ License: GPL-2+
  GNU General Public License for more details.
  .
  You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ along with this program. If not, see <http://www.gnu.org/licenses/>.
  .
  The complete text of the GNU General Public License
  can be found in /usr/share/common-licenses/GPL-2 file.
 
 License: LGPL-2+
- This library is free software; you can redistribute it and/or
- modify it under the terms of the GNU Library General Public
- License as published by the Free Software Foundation; either
- version 2 of the License, or (at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation, either version 2 of the License, or
+ (at your option) any later version.
  .
- This library is distributed in the hope that it will be useful,
+ This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- Library General Public License for more details.
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU Lesser General Public License for more details.
  .
- You should have received a copy of the GNU Library General Public
- License along with this library; if not, write to the Free
- Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program. If not, see <http://www.gnu.org/licenses/>.
  .
- The complete text of the GNU Library General Public License
+ The complete text of the GNU Lesser General Public License
  can be found in /usr/share/common-licenses/LGPL-2 file.
