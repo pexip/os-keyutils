@@ -14,6 +14,9 @@
 
 #include <stdint.h>
 
+extern const char keyutils_version_string[];
+extern const char keyutils_build_string[];
+
 /* key serial number */
 typedef int32_t key_serial_t;
 
@@ -68,7 +71,7 @@ typedef uint32_t key_perm_t;
 #define KEY_OTH_WRITE	0x00000004
 #define KEY_OTH_SEARCH	0x00000008
 #define KEY_OTH_LINK	0x00000010
-#define KEY_OTH_SETATTR	0x00000010
+#define KEY_OTH_SETATTR	0x00000020
 #define KEY_OTH_ALL	0x0000003f
 
 /* keyctl commands */
@@ -93,6 +96,8 @@ typedef uint32_t key_perm_t;
 #define KEYCTL_SESSION_TO_PARENT	18	/* set my session keyring on my parent process */
 #define KEYCTL_REJECT			19	/* reject a partially constructed key */
 #define KEYCTL_INSTANTIATE_IOV		20	/* instantiate a partially constructed key */
+#define KEYCTL_INVALIDATE		21	/* invalidate a key */
+#define KEYCTL_GET_PERSISTENT		22	/* get a user's persistent keyring */
 
 /*
  * syscall wrappers
@@ -145,6 +150,8 @@ extern long keyctl_instantiate_iov(key_serial_t id,
 				   const struct iovec *payload_iov,
 				   unsigned ioc,
 				   key_serial_t ringid);
+extern long keyctl_invalidate(key_serial_t id);
+extern long keyctl_get_persistent(uid_t uid, key_serial_t id);
 
 /*
  * utilities
@@ -157,5 +164,7 @@ typedef int (*recursive_key_scanner_t)(key_serial_t parent, key_serial_t key,
 				       char *desc, int desc_len, void *data);
 extern int recursive_key_scan(key_serial_t key, recursive_key_scanner_t func, void *data);
 extern int recursive_session_key_scan(recursive_key_scanner_t func, void *data);
+extern key_serial_t find_key_by_type_and_desc(const char *type, const char *desc,
+					      key_serial_t destringid);
 
 #endif /* KEYUTILS_H */
