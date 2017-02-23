@@ -11,3 +11,4 @@
 0014-Conditionalize-tests-based-on-kernel-version.patch
 0015-Insert-delay-in-key-invalidation-test.patch
 0016-Enable-skipping-of-MAXDESCLEN-tests.patch
+0099-disable-newring-test.patch

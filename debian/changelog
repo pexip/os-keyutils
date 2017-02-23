@@ -1,6 +1,7 @@
 keyutils (1.5.9-5pexip1) pexip; urgency=low
 
   * Migrate to Jessie
+  * debian/patches/0099-disable-newring-test.patch: Disable test
 
  -- John-Mark Bell <jmb@pexip.com>  Thu, 23 Feb 2017 20:40:11 +0000
 
