@@ -1,6 +1,7 @@
 keyutils (1.5.9-9pexip1) pexip; urgency=low
 
   * Migrate to Stretch
+  * debian/patches/0099-disable-newring-test.patch: Drop; not needed
 
  -- John-Mark Bell <jmb@pexip.com>  Thu, 12 Jul 2018 12:53:06 +0100
 

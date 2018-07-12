@@ -16,4 +16,3 @@ Include-limits.h-for-UINT_MAX.patch
 Make-build-reproducible.patch
 Drop-tests-requiring-CONFIG_BIG_KEYS.patch
 Adjust-tests-for-3.18-kernel-change.patch
-0099-disable-newring-test.patch
