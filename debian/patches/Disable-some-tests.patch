@@ -7,7 +7,6 @@ These will be fixed in the next upstream release.
 
 Forwarded: no
 Last-Update: 2014-05-29
-
 ---
  tests/bugzillas/bz1031154/runtest.sh | 87 ------------------------------------
  1 file changed, 87 deletions(-)
@@ -106,6 +105,3 @@ index e4d64d4..0000000
 -
 -# --- then report the results in the database ---
 -toolbox_report_result $TEST $result
--- 
-2.0.0.rc4
-

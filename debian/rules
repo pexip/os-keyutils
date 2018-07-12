@@ -1,21 +1,25 @@
 #!/usr/bin/make -f
 
+# $SOURCE_DATE_EPOCH is exported by debhelper
+CHANGEDATE = $(shell date -d @$(SOURCE_DATE_EPOCH) +%F)
+
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
+DEB_VERSION := $(shell dpkg-parsechangelog -S Version)
 DEB_BUILD_ARCH ?= $(shell dpkg-architecture -qDEB_BUILD_ARCH)
 DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 DEB_HOST_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 
-# Skip MAXDESCLEN tests on these architectures:
-SKIPMAXDESCLEN = mip mipsel sparc
 
 %:
 	dh ${@}
 
-ifneq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
 override_dh_auto_build:
-	dh_auto_build -- CC=$(DEB_HOST_GNU_TYPE)-gcc AR=$(DEB_HOST_GNU_TYPE)-ar
+ifneq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
+	dh_auto_build -- BUILDDATE=$(CHANGEDATE) CC=$(DEB_HOST_GNU_TYPE)-gcc AR=$(DEB_HOST_GNU_TYPE)-ar
+else
+	dh_auto_build -- BUILDDATE=$(CHANGEDATE)
 endif
 
 override_dh_auto_install:
@@ -23,25 +27,15 @@ override_dh_auto_install:
 
 override_dh_auto_test:
 	# Use  the library and executable we just built;
-	# skip tests requiring root;
-	# disable maxdesclen tests on mips, mipsel, and sparc
-ifeq (,$(findstring $(DEB_BUILD_ARCH),mips mipsel sparc arm64))
+	# skip tests requiring root
 	dh_auto_test -- \
 		PATH=$(CURDIR):$(PATH) \
 		LD_LIBRARY_PATH=$(CURDIR) \
 		SKIPROOT=yes \
 		SKIPINSTALLED=yes
-else
-	dh_auto_test -- \
-		PATH=$(CURDIR):$(PATH) \
-		LD_LIBRARY_PATH=$(CURDIR) \
-		SKIPROOT=yes \
-		SKIPINSTALLED=yes \
-		MAXDESCLEN_NOCHECK=yes
-endif
 
 override_dh_install:
 	dh_install --fail-missing
 
 override_dh_strip:
-	dh_strip --dbg-package=keyutils-dbg
+	dh_strip --dbgsym-migration='keyutils-dbg (<< $(DEB_VERSION)~)'

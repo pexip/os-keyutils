@@ -3,18 +3,18 @@ Upstream-Name: keyutils
 Upstream-Contact: David Howells <dhowells@redhat.com>
 Source: http://people.redhat.com/~dhowells/keyutils/
 
-Files: keyctl* request-key*
-Copyright: 2005-2014 Red Hat <http://www.redhat.com/>
+Files: *
+Copyright: 2005-2014, Red Hat <http://www.redhat.com/>
 License: GPL-2+
 
 Files: keyutils.*
-Copyright: 2005-2014 Red Hat <http://www.redhat.com/>
+Copyright: 2005-2014, Red Hat <http://www.redhat.com/>
 License: LGPL-2+
 
 Files: debian/*
-Copyright: 2006-2013 Daniel Baumann <mail@daniel-baumann.ch>
-           2013 Luk Claes <luk@debian.org>
-	   2014 Christian Kastner <debian@kvr.at>
+Copyright: 2006-2013, Daniel Baumann <mail@daniel-baumann.ch>
+           2013, Luk Claes <luk@debian.org>
+	   2014-2016, Christian Kastner <ckk@debian.org>
 License: LGPL-2+
 
 License: GPL-2+

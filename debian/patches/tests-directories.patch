@@ -5,11 +5,14 @@ Subject: Use change-directory instead of push- and pop-directory
  Bug-Debian: http://bugs.debian.org/659297
  Forwarded: no
  Last-Update: 2014-05-18
+---
+ tests/runtest.sh | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Index: keyutils-1.5.9/tests/runtest.sh
-===================================================================
---- keyutils-1.5.9.orig/tests/runtest.sh
-+++ keyutils-1.5.9/tests/runtest.sh
+diff --git a/tests/runtest.sh b/tests/runtest.sh
+index d14b70b..d49c305 100644
+--- a/tests/runtest.sh
++++ b/tests/runtest.sh
 @@ -12,9 +12,9 @@ fi
  
  for i in ${TESTS}; do

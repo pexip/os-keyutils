@@ -1,8 +1,7 @@
-From 7a99ec2be6642ce8d669dbb31e363c6702afc3ca Mon Sep 17 00:00:00 2001
 From: David Howells <dhowells@redhat.com>
 Date: Thu, 6 Mar 2014 17:35:50 +0000
-Subject: [PATCH] TEST: Insert a delay in the key invalidation test to allow
- for gc delays
+Subject: TEST: Insert a delay in the key invalidation test to allow for gc
+ delays
 
 The key invalidation test may fail because the check for a key having been
 invalidated may occur too quickly after the call to invalidate the key.
@@ -35,6 +34,3 @@ index 58d79cd..af19dbc 100644
  # check that it's now empty again
  marker "LIST KEYRING 3"
  list_keyring $keyringid
--- 
-2.0.0.rc4
-
