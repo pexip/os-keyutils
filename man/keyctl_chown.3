@@ -10,7 +10,7 @@
 .TH KEYCTL_CHOWN 3 "4 May 2006" Linux "Linux Key Management Calls"
 .\"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 .SH NAME
-keyctl_chown \- Change the ownership of a key
+keyctl_chown \- change the ownership of a key
 .\"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 .SH SYNOPSIS
 .nf
@@ -46,7 +46,9 @@ returns
 .B 0 .
 On error, the value
 .B -1
-will be returned and errno will have been set to an appropriate error.
+will be returned and
+.I errno
+will have been set to an appropriate error.
 .\"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 .SH ERRORS
 .TP
@@ -71,20 +73,16 @@ permission to the calling process.
 This is a library function that can be found in
 .IR libkeyutils .
 When linking,
-.B -lkeyutils
+.B \-lkeyutils
 should be specified to the linker.
 .\"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 .SH SEE ALSO
+.ad l
+.nh
 .BR keyctl (1),
-.br
 .BR add_key (2),
-.br
 .BR keyctl (2),
-.br
 .BR request_key (2),
-.br
 .BR keyctl (3),
-.br
-.BR keyutils (7),
-.br
-.BR keyrings (7)
+.BR keyrings (7),
+.BR keyutils (7)

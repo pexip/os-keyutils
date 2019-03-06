@@ -1,3 +1,164 @@
+keyutils (1.6-6) unstable; urgency=medium
+
+  * d/tests:
+     - Use set -e only for test setup
+     - upstream-runtime-tests
+       + Skip tests requiring root
+         They don't work with some container solutions due to their close
+         interaction with the kernel. These tests are moved to
+         upstream-runtime-test-isolation. (Closes: #923156)
+       + Drop needs-root restriction
+     - upstream-runtime-tests-isolation
+       + Drop redundant tests
+         Clean out tests not requiring machine-isolation, as these are
+         performed by the test upstream-runtime-tests.
+
+ -- Christian Kastner <ckk@debian.org>  Wed, 06 Mar 2019 17:18:19 +0100
+
+keyutils (1.6-5) unstable; urgency=medium
+
+  * d/tests:
+    - Save all output to $AUTOPKGTEST_ARTIFACTS
+  * d/tests:
+    - Run individual tests in AUTOPKGTEST_TMP subdirs, just in case
+
+ -- Christian Kastner <ckk@debian.org>  Fri, 01 Mar 2019 15:47:59 +0100
+
+keyutils (1.6-4) unstable; urgency=medium
+
+  * d/tests: upstream-runtime-tests: Fix broken option value
+    SKIPINSTALLREQ expects "yes", not "1". This led to debci tests failing.
+  * d/changelog: Fix line too long in 1.6.0-3
+
+ -- Christian Kastner <ckk@debian.org>  Fri, 22 Feb 2019 16:49:41 +0100
+
+keyutils (1.6-3) unstable; urgency=medium
+
+  * d/patches:
+    - Add Debian-specific-kernel-feature-tests.patch
+      Fold various Debian kernel feature test patches into one, dropping all
+      the other patches
+    - Drop Disable-some-tests.patch
+      The test is guarded by a kernel feature test for CONFIG_BIG_KEYS, which
+      we disable in another patch anyway
+  * d/tests: Split tests in two: isolation-machine required, or not
+  * d/control: Add Rules-Requires-Root: no
+    We don't need (fake)root to build the packages
+  * d/rules: Re-enable tests on MIPS
+    Bug #881830 blocking this has been fixed in stable in 2017, and the fix
+    should have propagated to the buildds by now
+
+ -- Christian Kastner <ckk@debian.org>  Thu, 21 Feb 2019 20:49:14 +0100
+
+keyutils (1.6-2) unstable; urgency=medium
+
+  * Add patchd/Disable-DH-tests.patch
+    Apparently, this requires a kernel feature not available on all buildds, and
+    the upstream feature tests only checks for kernel version and not actually
+    enabled kernel options.
+
+ -- Christian Kastner <ckk@debian.org>  Tue, 12 Feb 2019 07:36:31 +0100
+
+keyutils (1.6-1) unstable; urgency=medium
+
+  * New upstream version 1.6
+  * Update git repository layout to follow DEP-14
+
+  * d/patches (dropped):
+    - Drop tests-directories.patch.
+      It's purpose was to get rid of bashisms, but in the meantime, bash has
+      become a requirement
+  * d/patches (dropped, included or fixed upstream):
+     - man-page-syntax-fixes.patch
+     - enable-skipping-tests-req-root.patch
+     - Enable-skipping-test-requiring-installation.patch
+     - Make-testcase-aware-of-a-kernel-behaviour-change.patch
+     - Disable-tests-hitting-bug-in-MIPS-kernel-3.19.patch
+     - Use-bash-to-execute-the-tests.patch
+     - Conditionalize-tests-based-on-kernel-version.patch
+     - Insert-delay-in-key-invalidation-test.patch
+     - Include-limits.h-for-UINT_MAX.patch
+     - Adjust-tests-for-3.18-kernel-change.patch
+  * d/patches (added):
+     - pkg-config-install-tweaks.patch
+     - man-page-fixes.patch
+  * d/patches:
+    - Refresh remaining patches against 1.6
+  * d/libkeyutils1.symbols:
+    - Add symbols from new upstream version
+    - Add field Build-Depends-Package
+  * d/rules:
+    - Re-sync build option names with upstream
+  * d/tests:
+    -  Add restriction isolation-machine to upstream-runtime-tests
+  * gbp.conf:
+    - Update to reflect new DEP-14 layout
+  * d/copyright:
+    - Bump copyright years
+
+ -- Christian Kastner <ckk@debian.org>  Sun, 10 Feb 2019 15:29:04 +0100
+
+keyutils (1.5.9-10) unstable; urgency=medium
+
+  * Acknowledge NMUs. Thanks, Holger Levsen and James Cowgill!
+
+  [ Ondřej Nový ]
+  * d/tests:
+    - Use AUTOPKGTEST_TMP instead of ADTTMP
+  * d/copyright:
+    - Use https protocol in Format field
+
+  [ Christian Kastner ]
+  * d/watch:
+    - Update to formation version 4
+    - Switch URI to https
+  * d/rules:
+    - Switch from dh_install to dh_missing
+    - Drop override_dh_strip
+      It was only needed for the dbgsym migration
+    - Remove unused DEB_VERSION
+  * d/control:
+    - Bump Standards-Version to 4.3.0 (no changes needed)
+    - Switch Build-Depends from debhelper to debhelper-compat
+    - Bump Build-Depends for debhelper-compat to 12
+    - Switch to https protocol in Homepage field
+    - Remove Priority from library libkeyutils1
+      Default to the package Priority of "optional". lintian is correct in that
+      a library gets pulled in not per se, but as a dependency
+  * d/compat:
+    - Drop, as made obsolete by debhelper-compat
+  * d/copyright:
+    - Bump copyrights
+
+ -- Christian Kastner <ckk@debian.org>  Wed, 06 Feb 2019 23:12:27 +0100
+
+keyutils (1.5.9-9.3) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * d/control: Migrate Vcs repository to salsa.d.o.
+  * d/patches: Add endianness-and-PIE.patch to fix FTBFS.
+    Thanks to Steve Langasek and Adam Conrad (Closes: #895463)
+
+ -- James Cowgill <jcowgill@debian.org>  Mon, 16 Jul 2018 09:53:06 +0100
+
+keyutils (1.5.9-9.2) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * debian/rules:
+    - Disable testsuite on mips and mipsel until kernel bug #881830 is fixed.
+      (Closes: #881912)
+
+ -- James Cowgill <jcowgill@debian.org>  Thu, 16 Nov 2017 12:19:11 +0000
+
+keyutils (1.5.9-9.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * d/rules:
+    - Read SOURCE_DATE_EPOCH in UTC, thanks to Reiner Herrmann for the patch.
+      (Closes: #828681)
+
+ -- Holger Levsen <holger@debian.org>  Thu, 28 Sep 2017 14:19:16 +0200
+
 keyutils (1.5.9-9) unstable; urgency=medium
 
   * Drop package keyutils-dbg in favor of automatic dbgsym packages, as per

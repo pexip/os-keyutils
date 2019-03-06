@@ -35,11 +35,10 @@ TESTS	= $(shell /usr/bin/find . -name runtest.sh | \
                   /bin/sed -e 's/runtest.sh//g;s/^\.\///;s/\/$$//')
 
 BUILT_FILES= 
-FILES=$(METADATA) runtest.sh Makefile PURPOSE toolbox.inc.sh keyctl \
-      prepare.inc.sh
+FILES=$(METADATA) *.sh Makefile PURPOSE bugzillas keyctl
 
 run: $(FILES) build
-	sh runtest.sh $(TESTS)
+	bash runtest.sh $(TESTS)
 
 build: $(BUILT_FILES)
 
@@ -52,7 +51,7 @@ clean:
 
 
 # Include Common Makefile
-ifneq ($(wild /usr/share/rhts/lib/rhts-make.include),)
+ifneq ($(wildcard /usr/share/rhts/lib/rhts-make.include),)
 include /usr/share/rhts/lib/rhts-make.include
 
 # Generate the testinfo.desc here:
@@ -70,6 +69,7 @@ $(METADATA): Makefile
 	@echo "Releases:     -RHEL2.1 -RHEL3" >> $(METADATA)
 	@echo "Type:         Tier1" >> $(METADATA)
 	@echo "Type:         KernelTier1" >> $(METADATA)
+	@echo "Destructive:  no" >> $(METADATA)
 	rhts-lint $(METADATA)
 
 endif

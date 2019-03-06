@@ -1,20 +1,20 @@
-Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: keyutils
 Upstream-Contact: David Howells <dhowells@redhat.com>
 Source: http://people.redhat.com/~dhowells/keyutils/
 
 Files: *
-Copyright: 2005-2014, Red Hat <http://www.redhat.com/>
+Copyright: 2005-2018, Red Hat <http://www.redhat.com/>
 License: GPL-2+
 
 Files: keyutils.*
-Copyright: 2005-2014, Red Hat <http://www.redhat.com/>
+Copyright: 2005-2018, Red Hat <http://www.redhat.com/>
 License: LGPL-2+
 
 Files: debian/*
 Copyright: 2006-2013, Daniel Baumann <mail@daniel-baumann.ch>
            2013, Luk Claes <luk@debian.org>
-	   2014-2016, Christian Kastner <ckk@debian.org>
+	   2014-2019, Christian Kastner <ckk@debian.org>
 License: LGPL-2+
 
 License: GPL-2+

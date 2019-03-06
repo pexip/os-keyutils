@@ -28,7 +28,7 @@ index 304c694..627b11b 100644
  INSTALL		:= install
  DESTDIR		:=
  SPECFILE	:= keyutils.spec
-@@ -125,10 +129,10 @@ $(SONAME): $(LIBNAME)
+@@ -132,10 +136,10 @@ $(SONAME): $(LIBNAME)
  LIBVERS := -shared -Wl,-soname,$(SONAME) -Wl,--version-script,version.lds
  
  $(LIBNAME): keyutils.os version.lds Makefile
@@ -38,6 +38,6 @@ index 304c694..627b11b 100644
  keyutils.os: keyutils.c keyutils.h Makefile
 -	$(CC) $(CPPFLAGS) $(VCPPFLAGS) $(CFLAGS) -fPIC -o $@ -c $<
 +	$(CC) $(CPPFLAGS) $(VCPPFLAGS) $(CFLAGS_LIB) -fPIC -o $@ -c $<
+ LIB_DEPENDENCY	:= $(DEVELLIB)
+ endif
  
- ###############################################################################
- #

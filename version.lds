@@ -23,7 +23,7 @@ KEYUTILS_0.3 {
 	keyctl_set_reqkey_keyring;
 	keyctl_unlink;
 	keyctl_update;
-	 
+
 };
 
 KEYUTILS_1.0 {
@@ -61,3 +61,33 @@ KEYUTILS_1.5 {
 	find_key_by_type_and_desc;
 
 } KEYUTILS_1.4;
+
+KEYUTILS_1.6 {
+	/* management functions */
+	keyctl_dh_compute;
+	keyctl_dh_compute_alloc;
+	keyctl_pkey_query;
+	keyctl_pkey_encrypt;
+	keyctl_pkey_decrypt;
+	keyctl_pkey_sign;
+	keyctl_pkey_verify;
+
+} KEYUTILS_1.5;
+
+KEYUTILS_1.7 {
+	/* management functions */
+	keyctl_restrict;
+	keyctl_dh_compute_kdf;
+	keyctl_dh_compute_kdf_alloc;
+
+} KEYUTILS_1.6;
+
+KEYUTILS_1.8 {
+	/* Public key cryptography functions */
+	keyctl_pkey_query;
+	keyctl_pkey_encrypt;
+	keyctl_pkey_decrypt;
+	keyctl_pkey_sign;
+	keyctl_pkey_verify;
+
+} KEYUTILS_1.7;
