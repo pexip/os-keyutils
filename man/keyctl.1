@@ -13,6 +13,8 @@ keyctl \- key management facility control
 .SH SYNOPSIS
 \fBkeyctl\fR \-\-version
 .br
+\fBkeyctl\fR supports [<cap>]
+.br
 \fBkeyctl\fR show [\-x] [<keyring>]
 .br
 \fBkeyctl\fR add <type> <desc> <data> <keyring>
@@ -38,6 +40,8 @@ keyctl \- key management facility control
 \fBkeyctl\fR link <key> <keyring>
 .br
 \fBkeyctl\fR unlink <key> [<keyring>]
+.br
+\fBkeyctl\fR move [-f] <key> <from_keyring> <to_keyring>
 .br
 \fBkeyctl\fR search <keyring> <type> <desc> [<dest_keyring>]
 .br
@@ -175,6 +179,60 @@ $ keyctl \-\-version
 keyctl from keyutils\-1.5.3 (Built 2011\-08\-24)
 .fi
 .RE
+.SS Query subsystem capabilities
+\fBkeyctl\fR supports [<cap>]
+
+This command can list the available capabilities:
+
+.RS
+.nf
+$ keyctl supports
+have_capabilities=0
+have_persistent_keyrings=1
+have_dh_compute=1
+have_public_key=1
+...
+.fi
+.RE
+.P
+And it can query a capability:
+
+.RS
+.nf
+$ keyctl supports pkey
+echo $?
+0
+.fi
+.RE
+
+which returns 0 if the capability is supported, 1 if it isn't and 3 if the
+name is not recognised.  The capabilities supported are:
+.TP
+.B capabilities
+The kernel supports capability querying.  If not, the other capabilities will
+be queried as best libkeyutils can manage.
+.TP
+.B persistent_keyrings
+The kernel supports persistent keyrings.
+.TP
+.B dh_compute
+The kernel supports Diffie-Hellman computation operations.
+.TP
+.B public_key
+The kernel supports public key operations.
+.TP
+.B big_key_type
+The kernel supports the big_key key type.
+.TP
+.B key_invalidate
+The kernel supports the invalidate key operaiton.
+.TP
+.B restrict_keyring
+The kernel supports the restrict_keyring operation.
+.TP
+.B move_key
+The kernel supports the move key operation.
+
 .SS Show process keyrings
 \fBkeyctl show [\-x] [<keyring>]\fR
 
@@ -342,6 +400,23 @@ unlinks before exiting.
 .RS
 .nf
 $ keyctl unlink 23 27
+.fi
+.RE
+.SS Move a key between keyrings.
+\fBkeyctl move\fR  [-f] <key> <from_keyring> <to_keyring>
+
+This command moves a key from one keyring to another, atomically combining
+"keyctl unlink <key> <from_keyring>" and "keyctl link <key> <to_keyring>".
+
+If the "-f" flag is present, any matching key will be displaced from
+"to_keyring"; if not present, the command will fail with the error message
+"File exists" if the key would otherwise displace another key from
+"to_keyring".
+
+.RS
+.nf
+$ keyctl move 23 27 29
+$ keyctl move -f 71 @u @s
 .fi
 .RE
 .SS Search a keyring

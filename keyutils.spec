@@ -1,8 +1,8 @@
 %define vermajor 1
-%define verminor 6
+%define verminor 6.1
 %define version %{vermajor}.%{verminor}
 %define libapivermajor 1
-%define libapiversion %{libapivermajor}.8
+%define libapiversion %{libapivermajor}.9
 
 # % define buildid .local
 
@@ -99,6 +99,15 @@ make \
 %{_libdir}/pkgconfig/libkeyutils.pc
 
 %changelog
+* Fri Aug 2 2019 David Howells <dhowells@redhat.com> - 1.6.1-1
+- Add support for keyctl_move().
+- Add support for keyctl_capabilities().
+- Make key=val list optional for various public-key ops.
+- Fix system call signature for KEYCTL_PKEY_QUERY.
+- Fix 'keyctl pkey_query' argument passing.
+- Use keyctl_read_alloc() in dump_key_tree_aux().
+- Various manual page fixes.
+
 * Tue Nov 13 2018 David Howells <dhowells@redhat.com> - 1.6-1
 - Apply various specfile cleanups from Fedora.
 - request-key: Provide a command line option to suppress helper execution.

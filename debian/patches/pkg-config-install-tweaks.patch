@@ -4,13 +4,12 @@ Subject: pkg-config install tweaks
 
 Forwarded: yes
 Last-Update: 2019-02-09
-
 ---
  Makefile | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index 16b171b..39f6622 100644
+index d05374a..99b1f79 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -195,7 +195,7 @@ ifeq ($(NO_SOLIB),0)

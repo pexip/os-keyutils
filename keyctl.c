@@ -78,6 +78,8 @@ static nr void act_keyctl_pkey_encrypt(int argc, char *argv[]);
 static nr void act_keyctl_pkey_decrypt(int argc, char *argv[]);
 static nr void act_keyctl_pkey_sign(int argc, char *argv[]);
 static nr void act_keyctl_pkey_verify(int argc, char *argv[]);
+static nr void act_keyctl_move(int argc, char *argv[]);
+static nr void act_keyctl_supports(int argc, char *argv[]);
 
 const struct command commands[] = {
 	{ act_keyctl___version,	"--version",	"" },
@@ -94,6 +96,7 @@ const struct command commands[] = {
 	{ act_keyctl_get_persistent, "get_persistent", "<keyring> [<uid>]" },
 	{ act_keyctl_link,	"link",		"<key> <keyring>" },
 	{ act_keyctl_list,	"list",		"<keyring>" },
+	{ act_keyctl_move,	"move",		"[-f] <key> <from_keyring> <to_keyring>" },
 	{ act_keyctl_negate,	"negate",	"<key> <timeout> <keyring>" },
 	{ act_keyctl_new_session, "new_session",	"" },
 	{ act_keyctl_newring,	"newring",	"<name> <keyring>" },
@@ -127,6 +130,7 @@ const struct command commands[] = {
 	{ NULL,			"session",	"<name> [<prog> <arg1> <arg2> ...]" },
 	{ act_keyctl_setperm,	"setperm",	"<key> <mask>" },
 	{ act_keyctl_show,	"show",		"[-x] [<keyring>]" },
+	{ act_keyctl_supports,	"supports",	"[<cap>]" },
 	{ act_keyctl_timeout,	"timeout",	"<key> <timeout>" },
 	{ act_keyctl_unlink,	"unlink",	"<key> [<keyring>]" },
 	{ act_keyctl_update,	"update",	"<key> <data>" },
@@ -1896,7 +1900,7 @@ static void act_keyctl_pkey_query(int argc, char *argv[])
 
 	if (argc < 3)
 		format();
-	pkey_parse_info(argv + 2, info);
+	pkey_parse_info(argv + 3, info);
 
 	key = get_key_id(argv[1]);
 	if (strcmp(argv[2], "0") != 0) {
@@ -1931,7 +1935,7 @@ static void act_keyctl_pkey_encrypt(int argc, char *argv[])
 	void *in, *out;
 	char info[4096];
 
-	if (argc < 5)
+	if (argc < 4)
 		format();
 	pkey_parse_info(argv + 4, info);
 
@@ -1971,7 +1975,7 @@ static void act_keyctl_pkey_decrypt(int argc, char *argv[])
 	void *in, *out;
 	char info[4096];
 
-	if (argc < 5)
+	if (argc < 4)
 		format();
 	pkey_parse_info(argv + 4, info);
 
@@ -2011,7 +2015,7 @@ static void act_keyctl_pkey_sign(int argc, char *argv[])
 	void *in, *out;
 	char info[4096];
 
-	if (argc < 5)
+	if (argc < 4)
 		format();
 	pkey_parse_info(argv + 4, info);
 
@@ -2065,6 +2069,81 @@ static void act_keyctl_pkey_verify(int argc, char *argv[])
 			       data, data_len, sig, sig_len) < 0)
 		error("keyctl_pkey_verify");
 	exit(0);
+}
+
+/*
+ * Move a key between keyrings.
+ */
+static void act_keyctl_move(int argc, char *argv[])
+{
+	key_serial_t key, from_keyring, to_keyring;
+	unsigned int flags = KEYCTL_MOVE_EXCL;
+
+	if (argc > 4) {
+		if (strcmp("-f", argv[1]) == 0) {
+			flags &= ~KEYCTL_MOVE_EXCL;
+			argc--;
+			argv++;
+		}
+	}
+
+	if (argc != 4)
+		format();
+
+	key = get_key_id(argv[1]);
+	from_keyring = get_key_id(argv[2]);
+	to_keyring = get_key_id(argv[3]);
+
+	if (keyctl_move(key, from_keyring, to_keyring, flags) < 0)
+		error("keyctl_move");
+
+	exit(0);
+}
+
+struct capability_def {
+	const char	*name;	/* Textual name of capability */
+	unsigned int	index;	/* Index in capabilities array */
+	unsigned char	mask;	/* Mask on capabilities array element */
+};
+
+static const struct capability_def capabilities[] = {
+	{ "capabilities",		0,	KEYCTL_CAPS0_CAPABILITIES },
+	{ "persistent_keyrings",	0,	KEYCTL_CAPS0_PERSISTENT_KEYRINGS },
+	{ "dh_compute",			0,	KEYCTL_CAPS0_DIFFIE_HELLMAN },
+	{ "public_key",			0,	KEYCTL_CAPS0_PUBLIC_KEY },
+	{ "big_key_type",		0,	KEYCTL_CAPS0_BIG_KEY },
+	{ "key_invalidate",		0,	KEYCTL_CAPS0_INVALIDATE },
+	{ "restrict_keyring",		0,	KEYCTL_CAPS0_RESTRICT_KEYRING },
+	{ "move_key",			0,	KEYCTL_CAPS0_MOVE },
+	{}
+};
+
+/*
+ * Detect/list capabilities.
+ */
+static void act_keyctl_supports(int argc, char *argv[])
+{
+	const struct capability_def *p;
+	unsigned char caps[256];
+
+	if (argc < 1 || argc > 2)
+		format();
+
+	if (keyctl_capabilities(caps, sizeof(caps)) < 0)
+		error("keyctl_capabilities");
+
+	if (argc == 1) {
+		for (p = capabilities; p->name; p++)
+			printf("have_%s=%c\n",
+			       p->name,
+			       (caps[p->index] & p->mask) ? '1' : '0');
+		exit(0);
+	} else {
+		for (p = capabilities; p->name; p++)
+			if (strcmp(argv[1], p->name) == 0)
+				exit((caps[p->index] & p->mask) ? 0 : 1);
+		exit(3);
+	}
 }
 
 /*****************************************************************************/
@@ -2231,29 +2310,17 @@ static int dump_key_tree_aux(key_serial_t key, int depth, int more, int hex_key_
 	/* if it's a keyring then we're going to want to recursively
 	 * display it if we can */
 	if (strcmp(type, "keyring") == 0) {
-		/* find out how big the keyring is */
-		ret = keyctl_read(key, NULL, 0);
-		if (ret < 0)
-			error("keyctl_read");
-		if (ret == 0)
-			return 0;
-		ringlen = ret;
-
 		/* read its contents */
-		payload = malloc(ringlen);
-		if (!payload)
-			error("malloc");
-
-		ret = keyctl_read(key, payload, ringlen);
+		ret = keyctl_read_alloc(key, &payload);
 		if (ret < 0)
-			error("keyctl_read");
+			error("keyctl_read_alloc");
 
-		ringlen = ret < ringlen ? ret : ringlen;
+		ringlen = ret;
 		kcount = ringlen / sizeof(key_serial_t);
 
 		/* walk the keyring */
 		pk = payload;
-		do {
+		while (ringlen >= sizeof(key_serial_t)) {
 			key = *pk++;
 
 			/* recurse into next keyrings */
@@ -2281,7 +2348,8 @@ static int dump_key_tree_aux(key_serial_t key, int depth, int more, int hex_key_
 							    hex_key_IDs);
 			}
 
-		} while (ringlen -= 4, ringlen >= sizeof(key_serial_t));
+			ringlen -= sizeof(key_serial_t);
+		}
 
 		free(payload);
 	}

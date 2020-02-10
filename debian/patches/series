@@ -6,3 +6,4 @@ Make-build-reproducible.patch
 endianness-and-PIE.patch
 pkg-config-install-tweaks.patch
 man-page-fixes.patch
+Tests-for-KEYCTL_MOVE-require-kernel-5.3-or-above.patch
