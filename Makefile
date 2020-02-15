@@ -5,6 +5,7 @@ DESTDIR		:=
 SPECFILE	:= keyutils.spec
 NO_GLIBC_KEYERR	:= 0
 NO_ARLIB	:= 0
+NO_SOLIB	:= 0
 ETCDIR		:= /etc
 BINDIR		:= /bin
 SBINDIR		:= /sbin
@@ -16,7 +17,9 @@ MAN5		:= $(MANDIR)/man5
 MAN7		:= $(MANDIR)/man7
 MAN8		:= $(MANDIR)/man8
 INCLUDEDIR	:= /usr/include
-LNS		:= ln -sf
+LN		:= ln
+LNS		:= $(LN) -sf
+PREFIX 		:= /usr
 
 ###############################################################################
 #
@@ -62,8 +65,6 @@ USRLIBDIR	:= $(patsubst /lib/%,/usr/lib/%,$(LIBDIR))
 endif
 BUILDFOR	:= $(shell file /usr/bin/make | sed -e 's!.*ELF \(32\|64\)-bit.*!\1!')-bit
 
-LNS		:= ln -sf
-
 ifeq ($(origin CFLAGS),undefined)
 ifeq ($(BUILDFOR),32-bit)
 CFLAGS		+= -m32
@@ -77,6 +78,9 @@ USRLIBDIR	:= /usr/lib64
 endif
 endif
 endif
+
+PKGCONFIG 	:= libkeyutils.pc
+PKGCONFIG_DIR 	:= pkgconfig
 
 ###############################################################################
 #
@@ -95,7 +99,7 @@ endif
 # Normal build rule
 #
 ###############################################################################
-all: $(DEVELLIB) keyctl request-key key.dns_resolver
+all: keyctl request-key key.dns_resolver
 
 ###############################################################################
 #
@@ -104,25 +108,28 @@ all: $(DEVELLIB) keyctl request-key key.dns_resolver
 ###############################################################################
 #RPATH = -Wl,-rpath,$(LIBDIR)
 
-ifeq ($(NO_ARLIB),0)
-all: $(ARLIB)
-$(ARLIB): keyutils.o
-	$(AR) rcs $@ $<
-endif
-
 VCPPFLAGS	:= -DPKGBUILD="\"$(shell date -u +%F)\""
 VCPPFLAGS	+= -DPKGVERSION="\"keyutils-$(VERSION)\""
 VCPPFLAGS	+= -DAPIVERSION="\"libkeyutils-$(APIVERSION)\""
 
+ifeq ($(NO_ARLIB),0)
+all: $(ARLIB)
+$(ARLIB): keyutils.o
+	$(AR) rcs $@ $<
+
 keyutils.o: keyutils.c keyutils.h Makefile
 	$(CC) $(CPPFLAGS) $(VCPPFLAGS) $(CFLAGS) -UNO_GLIBC_KEYERR -o $@ -c $<
+LIB_DEPENDENCY	:= libkeyutils.a
+endif
 
 
+ifeq ($(NO_SOLIB),0)
+all: $(DEVELLIB)
 $(DEVELLIB): $(SONAME)
-	ln -sf $< $@
+	$(LNS) $< $@
 
 $(SONAME): $(LIBNAME)
-	ln -sf $< $@
+	$(LNS) $< $@
 
 LIBVERS := -shared -Wl,-soname,$(SONAME) -Wl,--version-script,version.lds
 
@@ -131,6 +138,8 @@ $(LIBNAME): keyutils.os version.lds Makefile
 
 keyutils.os: keyutils.c keyutils.h Makefile
 	$(CC) $(CPPFLAGS) $(VCPPFLAGS) $(CFLAGS) -fPIC -o $@ -c $<
+LIB_DEPENDENCY	:= $(DEVELLIB)
+endif
 
 ###############################################################################
 #
@@ -140,28 +149,52 @@ keyutils.os: keyutils.c keyutils.h Makefile
 %.o: %.c keyutils.h Makefile
 	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ -c $<
 
-keyctl: keyctl.o $(DEVELLIB)
+keyctl: keyctl.o $(LIB_DEPENDENCY)
 	$(CC) -L. $(CFLAGS) $(LDFLAGS) $(RPATH) -o $@ $< -lkeyutils
 
-request-key: request-key.o $(DEVELLIB)
+request-key: request-key.o $(LIB_DEPENDENCY)
 	$(CC) -L. $(CFLAGS) $(LDFLAGS) $(RPATH) -o $@ $< -lkeyutils
 
-key.dns_resolver: key.dns_resolver.o $(DEVELLIB)
-	$(CC) -L. $(CFLAGS) $(LDFLAGS) $(RPATH) -o $@ $< -lkeyutils -lresolv
+key.dns_resolver: key.dns_resolver.o dns.afsdb.o $(LIB_DEPENDENCY)
+	$(CC) -L. $(CFLAGS) $(LDFLAGS) $(RPATH) -o $@ \
+		key.dns_resolver.o dns.afsdb.o -lkeyutils -lresolv
+
+key.dns_resolver.o: key.dns_resolver.c key.dns.h
+dns.afsdb.o: dns.afsdb.c key.dns.h
 
 ###############################################################################
 #
 # Install everything
 #
 ###############################################################################
+pkgconfig:
+	sed \
+	-e 's,@VERSION\@,$(VERSION),g' \
+	-e 's,@prefix\@,$(PREFIX),g' \
+	-e 's,@exec_prefix\@,$(PREFIX),g' \
+	-e 's,@libdir\@,$(USRLIBDIR),g' \
+	-e 's,@includedir\@,$(INCLUDEDIR),g' \
+	< $(PKGCONFIG).in > $(PKGCONFIG) || rm $(PKGCONFIG)
+
 install: all
 ifeq ($(NO_ARLIB),0)
 	$(INSTALL) -D -m 0644 $(ARLIB) $(DESTDIR)$(USRLIBDIR)/$(ARLIB)
 endif
+ifeq ($(NO_SOLIB),0)
 	$(INSTALL) -D $(LIBNAME) $(DESTDIR)$(LIBDIR)/$(LIBNAME)
 	$(LNS) $(LIBNAME) $(DESTDIR)$(LIBDIR)/$(SONAME)
 	mkdir -p $(DESTDIR)$(USRLIBDIR)
 	$(LNS) $(LIBDIR)/$(SONAME) $(DESTDIR)$(USRLIBDIR)/$(DEVELLIB)
+	sed \
+	-e 's,@VERSION\@,$(VERSION),g' \
+	-e 's,@prefix\@,$(PREFIX),g' \
+	-e 's,@exec_prefix\@,$(PREFIX),g' \
+	-e 's,@libdir\@,$(USRLIBDIR),g' \
+	-e 's,@includedir\@,$(INCLUDEDIR),g' \
+	< $(PKGCONFIG).in > $(PKGCONFIG) || rm $(PKGCONFIG)
+	$(INSTALL) -D $(PKGCONFIG) $(DESTDIR)$(LIBDIR)/$(PKGCONFIG_DIR)/$(PKGCONFIG)
+	rm $(PKGCONFIG)
+endif
 	$(INSTALL) -D keyctl $(DESTDIR)$(BINDIR)/keyctl
 	$(INSTALL) -D request-key $(DESTDIR)$(SBINDIR)/request-key
 	$(INSTALL) -D request-key-debug.sh $(DESTDIR)$(SHAREDIR)/request-key-debug.sh
@@ -187,6 +220,8 @@ endif
 	$(LNS) keyctl_link.3 $(DESTDIR)$(MAN3)/keyctl_unlink.3
 	$(LNS) keyctl_read.3 $(DESTDIR)$(MAN3)/keyctl_read_alloc.3
 	$(LNS) recursive_key_scan.3 $(DESTDIR)$(MAN3)/recursive_session_key_scan.3
+	$(LNS) keyctl_dh_compute.3 $(DESTDIR)$(MAN3)/keyctl_dh_compute_alloc.3
+	$(LNS) keyctl_dh_compute.3 $(DESTDIR)$(MAN3)/keyctl_dh_compute_kdf.3
 	$(INSTALL) -D -m 0644 keyutils.h $(DESTDIR)$(INCLUDEDIR)/keyutils.h
 
 ###############################################################################
@@ -204,13 +239,13 @@ test:
 ###############################################################################
 clean:
 	$(MAKE) -C tests clean
-	$(RM) libkeyutils*
+	$(RM) libkeyutils.so* libkeyutils.a
 	$(RM) keyctl request-key key.dns_resolver
 	$(RM) *.o *.os *~
 	$(RM) debugfiles.list debugsources.list
 
 distclean: clean
-	$(RM) -r rpmbuild
+	$(RM) -r rpmbuild $(TARBALL)
 
 ###############################################################################
 #
@@ -219,7 +254,7 @@ distclean: clean
 ###############################################################################
 $(ZTARBALL):
 	git archive --prefix=keyutils-$(VERSION)/ --format tar -o $(TARBALL) HEAD
-	bzip2 -9 $(TARBALL)
+	bzip2 -9 <$(TARBALL) >$(ZTARBALL)
 
 tarball: $(ZTARBALL)
 
@@ -229,9 +264,10 @@ tarball: $(ZTARBALL)
 #
 ###############################################################################
 SRCBALL	:= rpmbuild/SOURCES/$(TARBALL)
+ZSRCBALL := rpmbuild/SOURCES/$(ZTARBALL)
 
 BUILDID	:= .local
-dist	:= $(word 2,$(shell grep "%dist" /etc/rpm/macros.dist))
+dist	:= $(word 2,$(shell grep -r "^%dist" /etc/rpm /usr/lib/rpm))
 release	:= $(word 2,$(shell grep ^Release: $(SPECFILE)))
 release	:= $(subst %{?dist},$(dist),$(release))
 release	:= $(subst %{?buildid},$(BUILDID),$(release))
@@ -239,12 +275,12 @@ rpmver	:= $(VERSION)-$(release)
 SRPM	:= rpmbuild/SRPMS/keyutils-$(rpmver).src.rpm
 
 RPMBUILDDIRS := \
-		--define "_srcrpmdir $(CURDIR)/rpmbuild/SRPMS" \
-		--define "_rpmdir $(CURDIR)/rpmbuild/RPMS" \
-		--define "_sourcedir $(CURDIR)/rpmbuild/SOURCES" \
-		--define "_specdir $(CURDIR)/rpmbuild/SPECS" \
-		--define "_builddir $(CURDIR)/rpmbuild/BUILD" \
-		--define "_buildrootdir $(CURDIR)/rpmbuild/BUILDROOT"
+	--define "_srcrpmdir $(CURDIR)/rpmbuild/SRPMS" \
+	--define "_rpmdir $(CURDIR)/rpmbuild/RPMS" \
+	--define "_sourcedir $(CURDIR)/rpmbuild/SOURCES" \
+	--define "_specdir $(CURDIR)/rpmbuild/SPECS" \
+	--define "_builddir $(CURDIR)/rpmbuild/BUILD" \
+	--define "_buildrootdir $(CURDIR)/rpmbuild/BUILDROOT"
 
 RPMFLAGS := \
 	--define "buildid $(BUILDID)"
@@ -254,8 +290,8 @@ rpm:
 	chmod ug-s rpmbuild
 	mkdir -p rpmbuild/{SPECS,SOURCES,BUILD,BUILDROOT,RPMS,SRPMS}
 	git archive --prefix=keyutils-$(VERSION)/ --format tar -o $(SRCBALL) HEAD
-	bzip2 -9f $(SRCBALL)
-	rpmbuild -ts $(SRCBALL).bz2 --define "_srcrpmdir rpmbuild/SRPMS" $(RPMFLAGS)
+	bzip2 -9 <$(SRCBALL) >$(ZSRCBALL)
+	rpmbuild -ts $(ZSRCBALL) --define "_srcrpmdir rpmbuild/SRPMS" $(RPMFLAGS)
 	rpmbuild --rebuild $(SRPM) $(RPMBUILDDIRS) $(RPMFLAGS)
 
 rpmlint: rpm

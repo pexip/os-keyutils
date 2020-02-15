@@ -10,7 +10,7 @@
 .TH FIND_KEY_BY_TYPE_AND_NAME 3 "10 Sep 2013" Linux "Linux Key Utility Calls"
 .\"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 .SH NAME
-find_key_by_type_and_name \- Find a key by type and name
+find_key_by_type_and_name \- find a key by type and name
 .\"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 .SH SYNOPSIS
 .nf
@@ -26,14 +26,15 @@ searches for a key with the given
 and exact
 .IR description ,
 firstly in the thread, process and session keyrings to which a process is
-subscribed and secondly in /proc/keys.
+subscribed and secondly in
+.IR /proc/keys .
 .P
 If a key is found, and
 .I destringid
 is not 0 and specifies a keyring, then the found key will be linked into it.
 .\"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 .SH RETURN VALUE
-The function returns the ID of the key if a key was found or -1 otherwise.
+The function returns the ID of the key if a key was found or \-1 otherwise.
 .\"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 .SH ERRORS
 .TP
@@ -53,9 +54,12 @@ by the calling process.
 .\"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 .SH LINKING
 When linking,
-.B -lkeyutils
+.B \-lkeyutils
 should be specified to the linker.
 .\"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 .SH SEE ALSO
+.ad l
+.nh
+.BR request_key (2),
 .BR keyctl (3),
-.BR request_key (3)
+.BR keyrings (7)

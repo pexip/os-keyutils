@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 . ../../../prepare.inc.sh
 . ../../../toolbox.inc.sh
@@ -7,7 +7,15 @@
 # ---- do the actual testing ----
 
 result=PASS
-echo "++++ BEGINNING TEST" >$OUTPUTFILE
+if [ $skip_install_required -eq 1 ]
+then
+    echo "++++ SKIPPING TEST" >$OUTPUTFILE
+    marker "SKIP BECAUSE TEST REQUIRES FULL INSTALL (for /sbin/request-key)"
+    toolbox_report_result $TEST PASS
+    exit 0
+else
+    echo "++++ BEGINNING TEST" >$OUTPUTFILE
+fi
 
 # check that an empty key type fails correctly
 marker "CHECK EMPTY KEY TYPE"
@@ -82,10 +90,17 @@ marker "CHECK MAXLEN DESC"
 request_key --fail user $maxdesc
 expect_error ENOKEY
 
-# check that an overlong key description fails correctly
-marker "CHECK OVERLONG DESC"
-request_key --fail user a$maxdesc
-expect_error EINVAL
+# This doesn't work on MIPS earler than 3.19 because of a kernel bug
+kver=`uname -r`
+kmch=`uname -m`
+if kernel_at_or_later_than 3.19 ||
+	[ "$kmch" != "mips" -a "$kmch" != "mips64" ]
+then
+	# check that an overlong key description fails correctly
+	marker "CHECK OVERLONG DESC"
+	request_key --fail user a$maxdesc
+	expect_error EINVAL
+fi
 
 # check that a max length callout info works correctly
 marker "CHECK MAXLEN CALLOUT"

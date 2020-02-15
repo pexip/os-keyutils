@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 . ../../../prepare.inc.sh
 . ../../../toolbox.inc.sh
@@ -10,7 +10,7 @@ result=PASS
 echo "++++ BEGINNING TEST" >$OUTPUTFILE
 
 # describe the keyring created for an anonymous session
-if [ $OSDIST = RHEL -a $OSRELEASE -le 5 ]
+if [ $OSDIST = RHEL ] && version_less_than $OSRELEASE 6
 then
     marker "ANON SESSION"
     new_session - keyctl rdescribe @s "@"

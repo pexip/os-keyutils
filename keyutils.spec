@@ -1,25 +1,23 @@
 %define vermajor 1
-%define verminor 5.9
+%define verminor 6
 %define version %{vermajor}.%{verminor}
 %define libapivermajor 1
-%define libapiversion %{libapivermajor}.5
+%define libapiversion %{libapivermajor}.8
 
 # % define buildid .local
 
-Summary: Linux Key Management Utilities
-Name: keyutils
+Name:    keyutils
 Version: %{version}
 Release: 1%{?buildid}%{?dist}
+Summary: Linux Key Management Utilities
 License: GPLv2+ and LGPLv2+
-Group: System Environment/Base
-ExclusiveOS: Linux
-Url: http://people.redhat.com/~dhowells/keyutils/
+Url:     http://people.redhat.com/~dhowells/keyutils/
 
 Source0: http://people.redhat.com/~dhowells/keyutils/keyutils-%{version}.tar.bz2
 
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+BuildRequires: gcc
 BuildRequires: glibc-kernheaders >= 2.4-9.1.92
-Requires: keyutils-libs == %{version}-%{release}
+Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 
 %description
 Utilities to control the kernel key management facility and to provide
@@ -28,7 +26,6 @@ instantiated.
 
 %package libs
 Summary: Key utilities library
-Group: System Environment/Base
 
 %description libs
 This package provides a wrapper library for the key management facility system
@@ -36,8 +33,7 @@ calls.
 
 %package libs-devel
 Summary: Development package for building Linux key management utilities
-Group: System Environment/Base
-Requires: keyutils-libs == %{version}-%{release}
+Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 
 %description libs-devel
 This package provides headers and libraries for building key utilities.
@@ -60,10 +56,10 @@ make \
 	SHAREDIR=%{datadir} \
 	RELEASE=.%{release} \
 	NO_GLIBC_KEYERR=1 \
-	CFLAGS="-Wall $RPM_OPT_FLAGS -Werror"
+	CFLAGS="-Wall $RPM_OPT_FLAGS -Werror" \
+	LDFLAGS="%{?__global_ldflags}"
 
 %install
-rm -rf $RPM_BUILD_ROOT
 make \
 	NO_ARLIB=1 \
 	DESTDIR=$RPM_BUILD_ROOT \
@@ -77,15 +73,11 @@ make \
 	SHAREDIR=%{datadir} \
 	install
 
-%clean
-rm -rf $RPM_BUILD_ROOT
-
-%post libs -p /sbin/ldconfig
-%postun libs -p /sbin/ldconfig
+%ldconfig_scriptlets libs
 
 %files
-%defattr(-,root,root,-)
-%doc README LICENCE.GPL
+%doc README
+%license LICENCE.GPL
 %{_sbindir}/*
 %{_bindir}/*
 %{datadir}
@@ -95,19 +87,41 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/*
 
 %files libs
-%defattr(-,root,root,-)
-%doc LICENCE.LGPL
+%license LICENCE.LGPL
 %{_mandir}/man7/*
 %{_libdir}/libkeyutils.so.%{libapiversion}
 %{_libdir}/libkeyutils.so.%{libapivermajor}
 
 %files libs-devel
-%defattr(-,root,root,-)
 %{_libdir}/libkeyutils.so
 %{_includedir}/*
 %{_mandir}/man3/*
+%{_libdir}/pkgconfig/libkeyutils.pc
 
 %changelog
+* Tue Nov 13 2018 David Howells <dhowells@redhat.com> - 1.6-1
+- Apply various specfile cleanups from Fedora.
+- request-key: Provide a command line option to suppress helper execution.
+- request-key: Find least-wildcard match rather than first match.
+- Remove the dependency on MIT Kerberos.
+- Fix some error messages
+- keyctl_dh_compute.3: Suggest /proc/crypto for list of available hashes.
+- Fix doc and comment typos.
+- Add public key ops for encrypt, decrypt, sign and verify (needs linux-4.20).
+- Add pkg-config support for finding libkeyutils.
+
+* Wed May 9 2018 David Howells <dhowells@redhat.com> - 1.5.11-1
+- Add keyring restriction support.
+- Add KDF support to the Diffie-Helman function.
+- DNS: Add support for AFS config files and SRV records
+
+* Wed Mar 15 2017 David Howells <dhowells@redhat.com> - 1.5.10-1
+- Include sys/types.h in keyutils.h.
+- The dns resolver needs limits.h.
+- Overhaul of all manual pages.
+- Some manual pages moved to Linux man-pages project.
+- Add Diffie-Helman keyctl function.
+
 * Fri Feb 21 2014 David Howells <dhowells@redhat.com> - 1.5.9-1
 - Add manpages for get_persistent.
 - Fix memory leaks in keyctl_describe/read/get_security_alloc().
@@ -115,7 +129,7 @@ rm -rf $RPM_BUILD_ROOT
 - Exit rather than returning from act_xxx() functions.
 - Fix memory leak in dump_key_tree_aux.
 - Only get the groups list if we need it.
-- Don't trust sscanf's %n argument.
+- Don't trust sscanf's %%n argument.
 - Use the correct path macros in the specfile.
 - Avoid use realloc when the memory has no content.
 - Fix a bunch of issues in key.dns_resolver.
