@@ -4,12 +4,13 @@ Priority: optional
 Maintainer: Pexip AS <packaging@pexip.com>
 XSBC-Pexip-Original-Maintainer: Christian Kastner <ckk@debian.org>
 Build-Depends:
-    debhelper (>= 9.20151004),
+    debhelper-compat (= 12),
     lsb-release,
-Standards-Version: 3.9.8
-Homepage: http://people.redhat.com/~dhowells/keyutils/
-Vcs-Git: https://anonscm.debian.org/git/collab-maint/keyutils.git
-Vcs-Browser: https://anonscm.debian.org/cgit/collab-maint/keyutils.git
+Rules-Requires-Root: no
+Standards-Version: 4.3.0
+Homepage: https://people.redhat.com/~dhowells/keyutils/
+Vcs-Git: https://salsa.debian.org/debian/keyutils.git
+Vcs-Browser: https://salsa.debian.org/debian/keyutils
 XS-Pexip-Upstream: http://ftp.debian.org/debian/ buster
 
 Package: keyutils
@@ -26,7 +27,6 @@ Description: Linux Key Management Utilities
 
 Package: libkeyutils1
 Section: libs
-Priority: standard
 Architecture: linux-any
 Multi-Arch: same
 Depends:

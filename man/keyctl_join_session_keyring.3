@@ -10,7 +10,7 @@
 .TH KEYCTL_JOIN_SESSION_KEYRING 3 "20 Feb 2014" Linux "Linux Key Management Calls"
 .\"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 .SH NAME
-keyctl_join_session_keyring \- Join a different session keyring
+keyctl_join_session_keyring \- join a different session keyring
 .\"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 .SH SYNOPSIS
 .nf
@@ -45,7 +45,9 @@ On success
 .BR keyctl_join_session_keyring ()
 returns the serial number of the key it found or created.  On error, the value
 .B -1
-will be returned and errno will have been set to an appropriate error.
+will be returned and
+.I errno
+will have been set to an appropriate error.
 .\"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 .SH ERRORS
 .TP
@@ -65,24 +67,18 @@ by the calling process.
 This is a library function that can be found in
 .IR libkeyutils .
 When linking,
-.B -lkeyutils
+.B \-lkeyutils
 should be specified to the linker.
 .\"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 .SH SEE ALSO
+.ad l
+.nh
 .BR keyctl (1),
-.br
 .BR add_key (2),
-.br
 .BR keyctl (2),
-.br
 .BR request_key (2),
-.br
 .BR keyctl (3),
-.br
-.BR session-keyring (7),
-.br
-.BR user-session-keyring (7),
-.br
+.BR keyrings (7),
 .BR keyutils (7),
-.br
-.BR keyrings (7)
+.BR session\-keyring (7),
+.BR user\-session\-keyring (7)

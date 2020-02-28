@@ -1,10 +1,16 @@
-#!/bin/sh
+#!/bin/bash
 
 . ../../../prepare.inc.sh
 . ../../../toolbox.inc.sh
 
 
 # ---- do the actual testing ----
+
+if [ $have_key_invalidate = 0 ]
+then
+    toolbox_skip_test $TEST "SKIPPING DUE TO LACK OF KEY INVALIDATION"
+    exit 0
+fi
 
 result=PASS
 echo "++++ BEGINNING TEST" >$OUTPUTFILE
@@ -32,6 +38,9 @@ expect_keyring_rlist rlist $keyid
 # invalidate the key
 marker "INVALIDATE KEY"
 invalidate_key $keyid
+
+# need to wait for the gc
+sleep 1
 
 # check that it's now empty again
 marker "LIST KEYRING 3"

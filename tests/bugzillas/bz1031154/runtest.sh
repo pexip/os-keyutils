@@ -1,14 +1,31 @@
-#!/bin/sh
+#!/bin/bash
 
 # Test for https://bugzilla.redhat.com/show_bug.cgi?id=1031154
 
 . ../../prepare.inc.sh
 . ../../toolbox.inc.sh
 
+# We intentionally generate AVCs so the test system shouldn't fail us
+# because the AVCs were generated.
+export AVC_ERROR=+no_avc_check
+export RHTS_OPTION_STRONGER_AVC=
 
 # ---- do the actual testing ----
 
 result=PASS
+
+if [ $have_big_key_type = 0 ]
+then
+    toolbox_skip_test $TEST "SKIPPING TEST DUE TO LACK OF BIG_KEY TYPE"
+    exit 0
+fi
+
+require_selinux
+require_command getenforce
+require_command setenforce
+require_command runcon
+require_command ausearch
+
 echo "++++ BEGINNING TEST" >$OUTPUTFILE
 
 # we need a reference time to scan the audit log from so as not to pick up old

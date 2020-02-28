@@ -10,17 +10,13 @@
 #
 ###############################################################################
 
-# Find the relative path from pwd to the directory holding this file
-includes=${BASH_SOURCE[0]}
-includes=${includes%/*}/
-
 echo === $OUTPUTFILE ===
 
 endian=`file -L /proc/$$/exe`
-if expr "$endian" : '.* MSB executable.*' >&/dev/null
+if expr "$endian" : '.* MSB \+\(executable\|shared object\).*' >&/dev/null
 then
     endian=BE
-elif expr "$endian" : '.* LSB executable.*' >&/dev/null
+elif expr "$endian" : '.* LSB \+\(executable\|shared object\).*' >&/dev/null
 then
     endian=LE
 else
@@ -33,9 +29,21 @@ maxtypelen=31
 maxtype=`for ((i=0; i<$((maxtypelen)); i++)); do echo -n a; done`
 
 PAGE_SIZE=`getconf PAGESIZE`
-maxdesclen=$((PAGE_SIZE - 1))
-maxdesc=`for ((i=0; i<$((maxdesclen)); i++)); do echo -n a; done`
-maxcall=$maxdesc
+pagelen=$((PAGE_SIZE - 1))
+fullpage=`for ((i=0; i<$((pagelen)); i++)); do echo -n a; done`
+string4095=`for ((i=0; i<4095; i++)); do echo -n a; done`
+
+if kernel_at_or_later_than 3.18
+then
+    maxdesc=$string4095
+elif rhel6_kernel_at_or_later_than 2.6.32-589.el6
+then
+    maxdesc=$string4095
+else
+    maxdesc=$fullpage
+fi
+
+maxcall=$fullpage
 
 maxsquota=`grep '^ *0': /proc/key-users | sed s@.*/@@`
 
@@ -76,58 +84,44 @@ function toolbox_report_result()
 {
     if [ $RUNNING_UNDER_RHTS = 1 ]
     then
-	report_result $TEST $result
+	report_result $1 $2
     fi
-    if [ $result = FAIL ]
+    if [ $2 = FAIL ]
     then
 	exit 1
     fi
 }
 
-. $includes/version.inc.sh
-
-###############################################################################
-#
-# Return true if the keyutils package being tested is older than the given
-# version.
-#
-###############################################################################
-function keyutils_older_than ()
+function toolbox_skip_test()
 {
-    version_less_than $KEYUTILSVER $1
+    echo "++++ SKIPPING TEST" >>$OUTPUTFILE
+    marker "$2"
+    toolbox_report_result $1 PASS
 }
 
 ###############################################################################
 #
-# Return true if the keyutils package being tested is at or later than the
-# given version.
+# Return true if the command is found in $PATH. If not, log that the test is
+# being skipped, report the result as PASS, and exit.
 #
 ###############################################################################
-function keyutils_at_or_later_than ()
+function require_command ()
 {
-    ! keyutils_older_than $1
+    which "$1" >&/dev/null
+    if [ $? != 0 ]
+    then
+	toolbox_skip_test "SKIP DUE TO MISSING COMMAND: $1"
+        exit 0
+    fi
 }
 
-###############################################################################
-#
-# Return true if the keyutils package being tested is newer than the given
-# version.
-#
-###############################################################################
-function keyutils_newer_than ()
+function require_selinux ()
 {
-    version_less_than $1 $KEYUTILSVER
-}
-
-###############################################################################
-#
-# Return true if the keyutils package being tested is at or older than the
-# given version.
-#
-###############################################################################
-function keyutils_at_or_older_than ()
-{
-    ! keyutils_newer_than $1
+    if ! grep -q selinuxfs /proc/mounts;
+    then
+	toolbox_skip_test $TEST "SKIP DUE TO DISABLED SELINUX"
+	exit 0
+    fi
 }
 
 ###############################################################################
@@ -687,6 +681,25 @@ function expect_payload ()
 
 ###############################################################################
 #
+# extract multiline output from the log file
+#
+###############################################################################
+function expect_multiline ()
+{
+    my_varname=$1
+    my_linecount="`echo \"$2\" | wc -l`"
+
+    my_payload=$(tail -$my_linecount $OUTPUTFILE)
+    eval $my_varname="\"$my_payload\""
+
+    if [ $# != 2 -o "x$my_payload" != "x$2" ]
+    then
+	failed
+    fi
+}
+
+###############################################################################
+#
 # revoke a key
 #
 ###############################################################################
@@ -827,6 +840,28 @@ function clear_keyring ()
 
     echo keyctl clear $1 >>$OUTPUTFILE
     keyctl clear $1 >>$OUTPUTFILE 2>&1
+    if [ $? != $my_exitval ]
+    then
+	failed
+    fi
+}
+
+###############################################################################
+#
+# restrict a keyring
+#
+###############################################################################
+function restrict_keyring ()
+{
+    my_exitval=0
+    if [ "x$1" = "x--fail" ]
+    then
+	my_exitval=1
+	shift
+    fi
+
+    echo keyctl restrict_keyring $1 $2 $3 >>$OUTPUTFILE
+    keyctl restrict_keyring $1 $2 $3 >>$OUTPUTFILE 2>&1
     if [ $? != $my_exitval ]
     then
 	failed
@@ -1080,6 +1115,72 @@ function invalidate_key ()
 
 ###############################################################################
 #
+# Do a DH computation
+#
+###############################################################################
+function dh_compute ()
+{
+    my_exitval=0
+    if [ "x$1" = "x--fail" ]
+    then
+	my_exitval=1
+	shift
+    fi
+
+    echo keyctl dh_compute $@ >>$OUTPUTFILE
+    keyctl dh_compute $@ >>$OUTPUTFILE 2>&1
+    if [ $? != $my_exitval ]
+    then
+	failed
+    fi
+}
+
+###############################################################################
+#
+# Do a DH computation post-processed by a KDF
+#
+###############################################################################
+function dh_compute_kdf ()
+{
+    my_exitval=0
+    if [ "x$1" = "x--fail" ]
+    then
+	my_exitval=1
+	shift
+    fi
+
+    echo keyctl dh_compute_kdf $@ >>$OUTPUTFILE
+    keyctl dh_compute_kdf $@ >>$OUTPUTFILE 2>&1
+    if [ $? != $my_exitval ]
+    then
+	failed
+    fi
+}
+
+###############################################################################
+#
+# Do a DH computation post-processed by a KDF with other information
+#
+###############################################################################
+function dh_compute_kdf_oi ()
+{
+    my_exitval=0
+    if [ "x$1" = "x--fail" ]
+    then
+	my_exitval=1
+	shift
+    fi
+
+    echo keyctl dh_compute_kdf_oi $@ >>$OUTPUTFILE
+    keyctl dh_compute_kdf_oi $@ >>$OUTPUTFILE 2>&1
+    if [ $? != $my_exitval ]
+    then
+	failed
+    fi
+}
+
+###############################################################################
+#
 # Make sure we sleep at least N seconds
 #
 ###############################################################################
@@ -1108,4 +1209,3 @@ function set_gc_delay()
         echo "Set $key_gc_delay_file to $delay, orig: $orig_gc_delay"
     fi
 }
-

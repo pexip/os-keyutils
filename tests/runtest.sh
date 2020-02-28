@@ -1,4 +1,9 @@
-#!/bin/sh
+#!/bin/bash
+
+# set the $AUTOMATED environment variable to non-zero for automated mode
+# automated mode will run all the tests to completion
+# non-automated mode (default) stops running the test suite on the first error
+AUTOMATED=${AUTOMATED:-0}
 
 TESTS=$*
 
@@ -11,10 +16,15 @@ then
 fi
 
 for i in ${TESTS}; do
-	export TEST=$i
-        pushd $i >/dev/null
-	sh ./runtest.sh || exit 1
-	popd >/dev/null
+    export TEST=$i
+    pushd $i >/dev/null
+    echo "### RUNNING TEST $i"
+    if [[ $AUTOMATED != 0 ]] ; then
+        bash ./runtest.sh
+    else
+        bash ./runtest.sh || exit 1
+    fi
+    popd >/dev/null
 done
 
 if [ `id -u` != 0 ]

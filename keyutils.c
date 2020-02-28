@@ -234,6 +234,99 @@ long keyctl_get_persistent(uid_t uid, key_serial_t id)
 	return keyctl(KEYCTL_GET_PERSISTENT, uid, id);
 }
 
+long keyctl_dh_compute(key_serial_t priv, key_serial_t prime,
+		       key_serial_t base, char *buffer, size_t buflen)
+{
+	struct keyctl_dh_params params = { .priv = priv,
+					   .prime = prime,
+					   .base = base };
+
+	return keyctl(KEYCTL_DH_COMPUTE, &params, buffer, buflen, 0);
+}
+
+long keyctl_dh_compute_kdf(key_serial_t private, key_serial_t prime,
+			   key_serial_t base, char *hashname, char *otherinfo,
+			   size_t otherinfolen, char *buffer, size_t buflen)
+{
+	struct keyctl_dh_params params = { .priv = private,
+					   .prime = prime,
+					   .base = base };
+	struct keyctl_kdf_params kdfparams = { .hashname = hashname,
+					       .otherinfo = otherinfo,
+					       .otherinfolen = otherinfolen };
+
+	return keyctl(KEYCTL_DH_COMPUTE, &params, buffer, buflen, &kdfparams);
+}
+
+long keyctl_restrict_keyring(key_serial_t keyring, const char *type,
+			     const char *restriction)
+{
+	return keyctl(KEYCTL_RESTRICT_KEYRING, keyring, type, restriction);
+}
+
+long keyctl_pkey_query(key_serial_t key_id,
+		       const char *info,
+		       struct keyctl_pkey_query *result)
+{
+	return keyctl(KEYCTL_PKEY_QUERY, key_id, info, result);
+}
+
+long keyctl_pkey_encrypt(key_serial_t key_id,
+			 const char *info,
+			 const void *data, size_t data_len,
+			 void *enc, size_t enc_len)
+{
+	struct keyctl_pkey_params params = {
+		.key_id		= key_id,
+		.in_len		= data_len,
+		.out_len	= enc_len,
+	};
+
+	return keyctl(KEYCTL_PKEY_ENCRYPT, &params, info, data, enc);
+}
+
+long keyctl_pkey_decrypt(key_serial_t key_id,
+			 const char *info,
+			 const void *enc, size_t enc_len,
+			 void *data, size_t data_len)
+{
+	struct keyctl_pkey_params params = {
+		.key_id		= key_id,
+		.in_len		= enc_len,
+		.out_len	= data_len,
+	};
+
+	return keyctl(KEYCTL_PKEY_DECRYPT, &params, info, enc, data);
+}
+
+long keyctl_pkey_sign(key_serial_t key_id,
+		      const char *info,
+		      const void *data, size_t data_len,
+		      void *sig, size_t sig_len)
+{
+	struct keyctl_pkey_params params = {
+		.key_id		= key_id,
+		.in_len		= data_len,
+		.out_len	= sig_len,
+	};
+
+	return keyctl(KEYCTL_PKEY_SIGN, &params, info, data, sig);
+}
+
+long keyctl_pkey_verify(key_serial_t key_id,
+			const char *info,
+			const void *data, size_t data_len,
+			const void *sig, size_t sig_len)
+{
+	struct keyctl_pkey_params params = {
+		.key_id		= key_id,
+		.in_len		= data_len,
+		.in2_len	= sig_len,
+	};
+
+	return keyctl(KEYCTL_PKEY_VERIFY, &params, info, data, sig);
+}
+
 /*****************************************************************************/
 /*
  * fetch key description into an allocated buffer
@@ -341,6 +434,38 @@ int keyctl_get_security_alloc(key_serial_t id, char **_buffer)
 
 	*_buffer = buf;
 	return ret - 1;
+}
+
+/*****************************************************************************/
+/*
+ * fetch DH computation results into an allocated buffer
+ * - resulting buffer has an extra NUL added to the end
+ * - returns count (not including extraneous NUL)
+ */
+int keyctl_dh_compute_alloc(key_serial_t priv, key_serial_t prime,
+			    key_serial_t base, void **_buffer)
+{
+	char *buf;
+	long buflen, ret;
+
+	ret = keyctl_dh_compute(priv, prime, base, NULL, 0);
+	if (ret < 0)
+		return -1;
+
+	buflen = ret;
+	buf = malloc(buflen + 1);
+	if (!buf)
+		return -1;
+
+	ret = keyctl_dh_compute(priv, prime, base, buf, buflen);
+	if (ret < 0) {
+		free(buf);
+		return -1;
+	}
+
+	buf[ret] = 0;
+	*_buffer = buf;
+	return ret;
 }
 
 /*
