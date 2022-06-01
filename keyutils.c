@@ -268,7 +268,7 @@ long keyctl_pkey_query(key_serial_t key_id,
 		       const char *info,
 		       struct keyctl_pkey_query *result)
 {
-	return keyctl(KEYCTL_PKEY_QUERY, key_id, info, result);
+	return keyctl(KEYCTL_PKEY_QUERY, key_id, NULL, info, result);
 }
 
 long keyctl_pkey_encrypt(key_serial_t key_id,
@@ -325,6 +325,64 @@ long keyctl_pkey_verify(key_serial_t key_id,
 	};
 
 	return keyctl(KEYCTL_PKEY_VERIFY, &params, info, data, sig);
+}
+
+long keyctl_move(key_serial_t id,
+		 key_serial_t from_ringid,
+		 key_serial_t to_ringid,
+		 unsigned int flags)
+{
+	return keyctl(KEYCTL_MOVE, id, from_ringid, to_ringid, flags);
+}
+
+long keyctl_capabilities(unsigned char *buffer, size_t buflen)
+{
+	long n;
+
+	n = keyctl(KEYCTL_CAPABILITIES, buffer, buflen);
+	if (n != -1 || errno != EOPNOTSUPP)
+		return n;
+
+	/* Emulate the operation */
+	if (buflen > 0) {
+		memset(buffer, 0, buflen);
+
+		errno = 0;
+		keyctl_get_persistent(-1, 0);
+		if (errno != EOPNOTSUPP)
+			buffer[0] |= KEYCTL_CAPS0_PERSISTENT_KEYRINGS;
+
+		errno = 0;
+		keyctl_dh_compute(0, 0, 0, NULL, 0);
+		if (errno != EOPNOTSUPP)
+			buffer[0] |= KEYCTL_CAPS0_DIFFIE_HELLMAN;
+
+		errno = 0;
+		keyctl_pkey_query(0, NULL, NULL);
+		if (errno != EOPNOTSUPP)
+			buffer[0] |= KEYCTL_CAPS0_PUBLIC_KEY;
+
+		/* Can't emulate KEYCTL_CAPS0_BIG_KEY without a valid
+		 * destination keyring.
+		 */
+
+		errno = 0;
+		keyctl_invalidate(0);
+		if (errno != EOPNOTSUPP)
+			buffer[0] |= KEYCTL_CAPS0_INVALIDATE;
+
+		errno = 0;
+		keyctl_restrict_keyring(0, NULL, NULL);
+		if (errno != EOPNOTSUPP)
+			buffer[0] |= KEYCTL_CAPS0_RESTRICT_KEYRING;
+
+		errno = 0;
+		keyctl_move(0, 0, 0, 0);
+		if (errno != EOPNOTSUPP)
+			buffer[0] |= KEYCTL_CAPS0_MOVE;
+	}
+
+	return sizeof(unsigned char);
 }
 
 /*****************************************************************************/

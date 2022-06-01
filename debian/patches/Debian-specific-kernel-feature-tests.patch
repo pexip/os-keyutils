@@ -19,8 +19,8 @@ Last-Update: 2019-02-20
  tests/keyctl/padd/useradd/runtest.sh  |  5 +----
  tests/keyctl/session/valid/runtest.sh | 15 ---------------
  tests/keyctl/show/valid/runtest.sh    |  3 +--
- tests/prepare.inc.sh                  | 12 +++---------
- 4 files changed, 5 insertions(+), 30 deletions(-)
+ tests/prepare.inc.sh                  | 13 ++++---------
+ 4 files changed, 6 insertions(+), 30 deletions(-)
 
 diff --git a/tests/keyctl/padd/useradd/runtest.sh b/tests/keyctl/padd/useradd/runtest.sh
 index 206a163..22e3fda 100644
@@ -79,31 +79,33 @@ index cbdd85f..f7e7c9d 100644
      # should be eight lines in the output (banner + session + 6 keyrings)
      marker "COUNT LINES"
 diff --git a/tests/prepare.inc.sh b/tests/prepare.inc.sh
-index ab9ae4d..3597907 100644
+index 448e42b..83556c8 100644
 --- a/tests/prepare.inc.sh
 +++ b/tests/prepare.inc.sh
-@@ -82,21 +82,15 @@ fi
- #
- # Work out whether the big_key type is supported by the kernel
- #
-+# Debian's kernel is not built with CONFIG_BIG_KEYS
- have_big_key_type=0
--if [ $OSDIST = RHEL ] && ! version_less_than $OSRELEASE 7
--then
--    # big_key is backported to 3.10 for RHEL-7
--    have_big_key_type=1
--elif kernel_at_or_later_than 3.13-rc1
--then
--    have_big_key_type=1
--fi
+@@ -90,14 +90,8 @@ else
+     #
+     # Work out whether the big_key type is supported by the kernel.
+     #
+-    if [ $OSDIST = RHEL ] && ! version_less_than $OSRELEASE 7
+-    then
+-	# big_key is backported to 3.10 for RHEL-7
+-	have_big_key_type=1
+-    elif kernel_at_or_later_than 3.13-rc1
+-    then
+-	have_big_key_type=1
+-    fi
++	# <snip>
++	# Debian's kernel is not built with CONFIG_BIG_KEYS
  
- #
- # Work out whether Diffie-Hellman is supported by the kernel
- #
-+# Debian's kernel introduced this in 4.19~exp1
- have_dh_compute=0
--if keyutils_at_or_later_than 1.5.10 && kernel_at_or_later_than 4.7-rc1
-+if keyutils_at_or_later_than 1.5.10 && kernel_at_or_later_than 4.19
- then
-     have_dh_compute=1
- fi
+     #
+     # Work out whether Diffie-Hellman is supported by the kernel
+@@ -105,7 +99,8 @@ else
+     if [ $OSDIST = RHEL ]
+     then
+ 	:
+-    elif keyutils_at_or_later_than 1.5.10 && kernel_at_or_later_than 4.7-rc1
++	# Debian's kernel introduced this in 4.19~exp1
++    elif keyutils_at_or_later_than 1.5.10 && kernel_at_or_later_than 4.19
+     then
+ 	have_dh_compute=1
+     fi

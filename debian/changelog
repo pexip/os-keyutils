@@ -1,3 +1,19 @@
+keyutils (1.6.1-2) unstable; urgency=medium
+
+  * Update symbols file (3 symbols added)
+  * Add Tests-for-KEYCTL_MOVE-require-kernel-5.3-or-above.patch.
+    Resolves a FTBFS on build hosts with a kernel before 5.2
+
+ -- Christian Kastner <ckk@debian.org>  Mon, 10 Feb 2020 17:23:36 +0100
+
+keyutils (1.6.1-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Refresh patches
+  * Bump Standards-Version to 4.5.0 (no changes needed)
+
+ -- Christian Kastner <ckk@debian.org>  Sun, 09 Feb 2020 21:15:07 +0100
+
 keyutils (1.6-6pexip5) pexip; urgency=medium
 
   * Rebuild in buster environment

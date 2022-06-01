@@ -106,6 +106,8 @@ typedef uint32_t key_perm_t;
 #define KEYCTL_PKEY_SIGN		27	/* Create a public key signature */
 #define KEYCTL_PKEY_VERIFY		28	/* Verify a public key signature */
 #define KEYCTL_RESTRICT_KEYRING		29	/* Restrict keys allowed to link to a keyring */
+#define KEYCTL_MOVE			30	/* Move keys between keyrings */
+#define KEYCTL_CAPABILITIES		31	/* Find capabilities of keyrings subsystem */
 
 /* keyctl structures */
 struct keyctl_dh_params {
@@ -145,6 +147,21 @@ struct keyctl_pkey_params {
 	};
 	unsigned int	__spare[7];
 };
+
+#define KEYCTL_MOVE_EXCL	0x00000001 /* Do not displace from the to-keyring */
+
+/*
+ * Capabilities flags.  The capabilities list is an array of 8-bit integers;
+ * each integer can carry up to 8 flags.
+ */
+#define KEYCTL_CAPS0_CAPABILITIES	0x01 /* KEYCTL_CAPABILITIES supported */
+#define KEYCTL_CAPS0_PERSISTENT_KEYRINGS 0x02 /* Persistent keyrings enabled */
+#define KEYCTL_CAPS0_DIFFIE_HELLMAN	0x04 /* Diffie-Hellman ops enabled */
+#define KEYCTL_CAPS0_PUBLIC_KEY		0x08 /* Public key ops enabled */
+#define KEYCTL_CAPS0_BIG_KEY		0x10 /* big_key-type enabled */
+#define KEYCTL_CAPS0_INVALIDATE		0x20 /* KEYCTL_INVALIDATE supported */
+#define KEYCTL_CAPS0_RESTRICT_KEYRING	0x40 /* KEYCTL_RESTRICT_KEYRING supported */
+#define KEYCTL_CAPS0_MOVE		0x80 /* KEYCTL_MOVE supported */
 
 /*
  * syscall wrappers
@@ -227,6 +244,11 @@ extern long keyctl_pkey_verify(key_serial_t key_id,
 			       const char *info,
 			       const void *data, size_t data_len,
 			       const void *sig, size_t sig_len);
+extern long keyctl_move(key_serial_t id,
+			key_serial_t from_ringid,
+			key_serial_t to_ringid,
+			unsigned int flags);
+extern long keyctl_capabilities(unsigned char *buffer, size_t buflen);
 
 /*
  * utilities
