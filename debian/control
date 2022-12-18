@@ -3,11 +3,11 @@ Section: admin
 Priority: optional
 Maintainer: Christian Kastner <ckk@debian.org>
 Build-Depends:
-    debhelper-compat (= 12),
+    debhelper-compat (= 13),
     lsb-release,
 Rules-Requires-Root: no
-Standards-Version: 4.5.0
-Homepage: https://people.redhat.com/~dhowells/keyutils/
+Standards-Version: 4.6.2
+Homepage: https://git.kernel.org/pub/scm/linux/kernel/git/dhowells/keyutils.git
 Vcs-Git: https://salsa.debian.org/debian/keyutils.git
 Vcs-Browser: https://salsa.debian.org/debian/keyutils
 
